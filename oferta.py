@@ -7,6 +7,8 @@
 # assume-se, representam a estrutura de uma página do Matrícula Web. Caso esta
 # estrutura seja alterada, as expressões aqui precisam ser atualizadas de
 # acordo.
+#
+# Erros em requests são ignorados silenciosamente.
 
 
 import requests
@@ -41,7 +43,7 @@ def departamento(dept=116, curso='graduacao'):
         disciplinas_ofertadas = re.findall(DISCIPLINAS, html_page.content)
         for codigo, nome in disciplinas_ofertadas:
             oferta[codigo] = nome
-    except requests.exceptions.ConnectionError as erro:
+    except requests.exceptions.RequestException as erro:
         pass
         # print 'Erro ao buscar %s para %s.\n%s' % (codigo, curso, erro)
 
@@ -80,7 +82,7 @@ def disciplina(codigo, curso='graduacao'):
                 oferta[turma]['professores'] = professores.split('<br>')
                 if reserva:
                     oferta[turma]['reserva'] = reserva
-    except requests.exceptions.ConnectionError as erro:
+    except requests.exceptions.RequestException as erro:
         pass
         # print 'Erro ao buscar %s para %s.\n%s' % (codigo, curso, erro)
 
@@ -119,7 +121,7 @@ def pre_requisitos(codigo, curso='graduacao'):
         for requisito in requisitos:
             for disciplinas in requisito.split(' OU<br>'):
                 pre_req.append(re.findall(CODIGO, disciplinas))
-    except requests.exceptions.ConnectionError as erro:
+    except requests.exceptions.RequestException as erro:
         pass
         # print 'Erro ao buscar %s para %s.\n%s' % (codigo, curso, erro)
 
@@ -140,7 +142,7 @@ def lista_de_espera(codigo, turma='\w+', curso='graduacao'):
     """
     TABELA = '<td><b>Turma</b></td>    ' \
              '<td><b>Vagas<br>Solicitadas</b></td>  </tr>' \
-             '<tr CLASS=PadraoMenor bgcolor=#E7F3D6>  ' \
+             '<tr CLASS=PadraoMenor bgcolor=.*?>  ' \
              '.*?</tr><tr CLASS=PadraoBranco>'
     TURMAS = '<td align=center >(%s)</td>  ' \
             '<td align=center >(\d+)</td></tr>' % turma
@@ -154,7 +156,9 @@ def lista_de_espera(codigo, turma='\w+', curso='graduacao'):
                 vagas = int(vagas_desejadas)
                 if vagas > 0:
                     demanda[turma] = vagas
-    except requests.exceptions.ConnectionError as erro:
+    except requests.exceptions.RequestException as erro:
+        print erro
+    except requests.exceptions.RequestException as erro:
         pass
         #print 'Erro ao buscar %s para %s.\n%s' % (codigo, curso, erro)
 

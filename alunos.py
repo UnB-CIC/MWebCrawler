@@ -15,7 +15,7 @@ def pre_requisitos(codigo, prefixo=''):
     profundidade.
 
     Argumentos:
-    o -- o código do Departamento que oferece as disciplinas
+    codigo -- o código do Departamento que oferece as disciplinas
             (default 116)
     curso -- nível acadêmico das disciplinas buscadas: graduacao ou
              posgraduacao.
@@ -26,8 +26,3 @@ def pre_requisitos(codigo, prefixo=''):
         for preq in oferta.pre_requisitos(codigo):
             for c in preq:
                 pre_requisitos(c, prefixo)
-
-codigos = [113476, 116394, 116459]
-codigos = [113476]
-for cod in codigos:
-    pre_requisitos(cod)

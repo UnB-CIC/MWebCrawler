@@ -11,8 +11,8 @@
 # Erros em requests são ignorados silenciosamente.
 
 
-import requests
-import re
+from requests import get as busca_url
+from re import findall as encontra_padrao
 
 
 # Construção de links para o Matrícula Web.
@@ -39,8 +39,8 @@ def departamento(dept=116, curso='graduacao'):
 
     oferta = {}
     try:
-        html_page = requests.get(mweb_url(curso, 'oferta_dis', dept))
-        disciplinas_ofertadas = re.findall(DISCIPLINAS, html_page.content)
+        html_page = busca_url(mweb_url(curso, 'oferta_dis', dept))
+        disciplinas_ofertadas = encontra_padrao(DISCIPLINAS, html_page.content)
         for codigo, nome in disciplinas_ofertadas:
             oferta[codigo] = nome
     except requests.exceptions.RequestException as erro:
@@ -72,8 +72,8 @@ def disciplina(codigo, curso='graduacao'):
 
     oferta = {}
     try:
-        html_page = requests.get(mweb_url(curso, 'oferta_dados', codigo))
-        turmas_ofertadas = re.findall(TURMAS, html_page.content)
+        html_page = busca_url(mweb_url(curso, 'oferta_dados', codigo))
+        turmas_ofertadas = encontra_padrao(TURMAS, html_page.content)
         for turma, ocupadas, professores, aux, reserva in turmas_ofertadas:
             vagas = int(ocupadas)
             if vagas > 0:
@@ -116,11 +116,11 @@ def pre_requisitos(codigo, curso='graduacao'):
 
     pre_req = []
     try:
-        html_page = requests.get(mweb_url(curso, 'disciplina_pop', codigo))
-        requisitos = re.findall(DISCIPLINAS, html_page.content)
+        html_page = busca_url(mweb_url(curso, 'disciplina_pop', codigo))
+        requisitos = encontra_padrao(DISCIPLINAS, html_page.content)
         for requisito in requisitos:
             for disciplinas in requisito.split(' OU<br>'):
-                pre_req.append(re.findall(CODIGO, disciplinas))
+                pre_req.append(encontra_padrao(CODIGO, disciplinas))
     except requests.exceptions.RequestException as erro:
         pass
         # print 'Erro ao buscar %s para %s.\n%s' % (codigo, curso, erro)
@@ -149,33 +149,31 @@ def lista_de_espera(codigo, turma='\w+', curso='graduacao'):
 
     demanda = {}
     try:
-        html_page = requests.get(mweb_url(curso, 'faltavaga_rel', codigo))
-        turmas_com_demanda = re.findall(TABELA, html_page.content)
+        html_page = busca_url(mweb_url(curso, 'faltavaga_rel', codigo))
+        turmas_com_demanda = encontra_padrao(TABELA, html_page.content)
         for tabela in turmas_com_demanda:
-            for turma, vagas_desejadas in re.findall(TURMAS, tabela):
+            for turma, vagas_desejadas in encontra_padrao(TURMAS, tabela):
                 vagas = int(vagas_desejadas)
                 if vagas > 0:
                     demanda[turma] = vagas
-    except requests.exceptions.RequestException as erro:
-        print erro
     except requests.exceptions.RequestException as erro:
         pass
         #print 'Erro ao buscar %s para %s.\n%s' % (codigo, curso, erro)
 
     return demanda
 
-# oferta = departamento()
-# for d in oferta:
-#     print d, oferta[d]
+oferta = departamento()
+for d in oferta:
+    print d, oferta[d]
 
-# oferta = disciplina(116319)
-# for d in oferta:
-#     print d, oferta[d]
+oferta = disciplina(116319)
+for d in oferta:
+    print d, oferta[d]
 
-# oferta = pre_requisitos(116424)
-# for d in oferta:
-#     print d
+oferta = pre_requisitos(116424)
+for d in oferta:
+    print d
 
-# oferta = lista_de_espera(113476)
-# for d in oferta:
-#     print d, oferta[d]
+oferta = lista_de_espera(113476)
+for d in oferta:
+    print d, oferta[d]

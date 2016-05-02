@@ -162,18 +162,18 @@ def lista_de_espera(codigo, turma='\w+', curso='graduacao'):
 
     return demanda
 
-oferta = departamento()
-for d in oferta:
-    print d, oferta[d]
+# oferta = departamento()
+# for d in oferta:
+#     print d, oferta[d]
 
-oferta = disciplina(116319)
-for d in oferta:
-    print d, oferta[d]
+# oferta = disciplina(116319)
+# for d in oferta:
+#     print d, oferta[d]
 
-oferta = pre_requisitos(116424)
-for d in oferta:
-    print d
+# oferta = pre_requisitos(116424)
+# for d in oferta:
+#     print d
 
-oferta = lista_de_espera(113476)
-for d in oferta:
-    print d, oferta[d]
+# oferta = lista_de_espera(113476)
+# for d in oferta:
+#     print d, oferta[d]

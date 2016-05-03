@@ -61,14 +61,14 @@ def disciplina(codigo, curso='graduacao'):
              (default graduacao)
     """
     TURMAS = '<b>Turma</b>.*?<font size=4><b>(\w+)</b></font></div>' \
-            '.*?' \
-            '<td>Ocupadas</td>' \
-            '<td><b><font color=(?:red|green)>(\d+)</font></b></td>' \
-            '.*?' \
-            '<center>(.*?)<br></center>' \
-            '.*?' \
-            '(Reserva para curso.*?<td align=left>(.*?)</td>.*?)?' \
-            '<td colspan=6 bgcolor=white height=20>'
+             '.*?' \
+             '<td>Ocupadas</td>' \
+             '<td><b><font color=(?:red|green)>(\d+)</font></b></td>' \
+             '.*?' \
+             '<center>(.*?)<br></center>' \
+             '.*?' \
+             '(Reserva para curso.*?<td align=left>(.*?)</td>.*?)?' \
+             '<td colspan=6 bgcolor=white height=20>'
 
     oferta = {}
     try:
@@ -87,6 +87,41 @@ def disciplina(codigo, curso='graduacao'):
         # print 'Erro ao buscar %s para %s.\n%s' % (codigo, curso, erro)
 
     return oferta
+
+
+def lista_de_espera(codigo, turma='\w+', curso='graduacao'):
+    """Dado o código de uma disciplina, acessa o Matrícula Web e retorna um
+    dicionário com a lista de espera para as turmas ofertadas da disciplina.
+
+    Argumentos:
+    codigo -- o código da disciplina
+    turma -- identificador da turma
+             (default '\w+') (todas as disciplinas)
+    curso -- nível acadêmico das disciplinas buscadas: graduacao ou
+             posgraduacao
+             (default graduacao).
+    """
+    TABELA = '<td><b>Turma</b></td>    ' \
+             '<td><b>Vagas<br>Solicitadas</b></td>  </tr>' \
+             '<tr CLASS=PadraoMenor bgcolor=.*?>  ' \
+             '.*?</tr><tr CLASS=PadraoBranco>'
+    TURMAS = '<td align=center >(%s)</td>  ' \
+             '<td align=center >(\d+)</td></tr>' % turma
+
+    demanda = {}
+    try:
+        html_page = busca_url(mweb_url(curso, 'faltavaga_rel', codigo))
+        turmas_com_demanda = encontra_padrao(TABELA, html_page.content)
+        for tabela in turmas_com_demanda:
+            for turma, vagas_desejadas in encontra_padrao(TURMAS, tabela):
+                vagas = int(vagas_desejadas)
+                if vagas > 0:
+                    demanda[turma] = vagas
+    except requests.exceptions.RequestException as erro:
+        pass
+        #print 'Erro ao buscar %s para %s.\n%s' % (codigo, curso, erro)
+
+    return demanda
 
 
 def pre_requisitos(codigo, curso='graduacao'):
@@ -111,7 +146,7 @@ def pre_requisitos(codigo, curso='graduacao'):
     disciplina 116394 (ORG ARQ DE COMPUTADORES) e 113042 (Cálculo 2).
     """
     DISCIPLINAS = '<td valign=top><b>Pré-req:</b> </td>' \
-                        '<td class=PadraoMenor>(.*?)</td></tr>'
+                  '<td class=PadraoMenor>(.*?)</td></tr>'
     CODIGO = '(\d{6})'
 
     pre_req = []
@@ -127,41 +162,6 @@ def pre_requisitos(codigo, curso='graduacao'):
 
     return filter(None, pre_req)
 
-
-def lista_de_espera(codigo, turma='\w+', curso='graduacao'):
-    """Dado o código de uma disciplina, acessa o Matrícula Web e retorna um
-    dicionário com a lista de espera para as turmas ofertadas da disciplina.
-
-    Argumentos:
-    codigo -- o código da disciplina
-    turma -- identificador da turma
-             (default '\w+') (todas as disciplinas)
-    curso -- nível acadêmico das disciplinas buscadas: graduacao ou
-             posgraduacao
-             (default graduacao).
-    """
-    TABELA = '<td><b>Turma</b></td>    ' \
-             '<td><b>Vagas<br>Solicitadas</b></td>  </tr>' \
-             '<tr CLASS=PadraoMenor bgcolor=.*?>  ' \
-             '.*?</tr><tr CLASS=PadraoBranco>'
-    TURMAS = '<td align=center >(%s)</td>  ' \
-            '<td align=center >(\d+)</td></tr>' % turma
-
-    demanda = {}
-    try:
-        html_page = busca_url(mweb_url(curso, 'faltavaga_rel', codigo))
-        turmas_com_demanda = encontra_padrao(TABELA, html_page.content)
-        for tabela in turmas_com_demanda:
-            for turma, vagas_desejadas in encontra_padrao(TURMAS, tabela):
-                vagas = int(vagas_desejadas)
-                if vagas > 0:
-                    demanda[turma] = vagas
-    except requests.exceptions.RequestException as erro:
-        pass
-        #print 'Erro ao buscar %s para %s.\n%s' % (codigo, curso, erro)
-
-    return demanda
-
 # oferta = departamento()
 # for d in oferta:
 #     print d, oferta[d]
@@ -170,10 +170,10 @@ def lista_de_espera(codigo, turma='\w+', curso='graduacao'):
 # for d in oferta:
 #     print d, oferta[d]
 
-# oferta = pre_requisitos(116424)
-# for d in oferta:
-#     print d
-
 # oferta = lista_de_espera(113476)
 # for d in oferta:
 #     print d, oferta[d]
+
+# oferta = pre_requisitos(116424)
+# for d in oferta:
+#     print d

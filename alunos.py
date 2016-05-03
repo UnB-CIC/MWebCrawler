@@ -20,9 +20,8 @@ def pre_requisitos(codigo, prefixo=''):
     curso -- nível acadêmico das disciplinas buscadas: graduacao ou
              posgraduacao.
     """
-    if codigo:
-        print '%s%s' % (prefixo, codigo)
-        prefixo += '\t'
-        for preq in oferta.pre_requisitos(codigo):
-            for c in preq:
-                pre_requisitos(c, prefixo)
+    print '%s%s' % (prefixo, codigo)
+    prefixo = '\t' + prefixo
+    for preq in oferta.pre_requisitos(codigo):
+        for c in preq:
+            pre_requisitos(c, prefixo)

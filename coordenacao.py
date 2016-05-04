@@ -18,7 +18,7 @@ def alunos_matriculados(codigo, curso='graduacao'):
              posgraduacao
              (default graduacao).
     """
-    disciplinas = oferta.disciplina(cod)
+    disciplinas = oferta.turmas(cod)
     return sum([disciplinas[turma]['matriculados'] for turma in disciplinas])
 
 
@@ -59,7 +59,7 @@ def monitoria(oferta_, num_bolsas):
     disciplinas = {}
     obrigatorias, optativas = {}, {}
     for cod in oferta_:
-        disciplinas[cod] = oferta.disciplina(cod)
+        disciplinas[cod] = oferta.turmas(cod)
         for t in disciplinas[cod]:
             turma = disciplinas[cod][t]
             turma['monitores'] = 0
@@ -99,9 +99,9 @@ if __name__ == '__main__':
     import sys
 
     if len(sys.argv) > 1:
-        oferta_ = oferta.departamento(dept=sys.argv[1])
+        oferta_ = oferta.disciplinas(dept=sys.argv[1])
     else:
-        oferta_ = oferta.departamento()
+        oferta_ = oferta.disciplinas()
 
     print '\nAlunos matriculados:'
     for cod in sorted(oferta_, key=oferta_.get):

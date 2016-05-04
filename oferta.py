@@ -17,32 +17,66 @@ from re import findall as encontra_padrao
 
 
 # Construção de links para o Matrícula Web.
-mweb = lambda curso: 'https://matriculaweb.unb.br/matriculaweb/' + str(curso)
+mweb = lambda nivel: 'https://matriculaweb.unb.br/matriculaweb/' + str(nivel)
 link = lambda pagina, cod: str(pagina) + '.aspx?cod=' + str(cod)
-url_mweb = lambda curso, pagina, cod: mweb(curso) + '/' + link(pagina, cod)
+url_mweb = lambda nivel, pagina, cod: mweb(nivel) + '/' + link(pagina, cod)
 
 
-def departamentos(codigo='\d+', curso='graduacao'):
+def cursos(codigo='\d+', nivel='graduacao'):
+    """Acessa o Matrícula Web e retorna um dicionário com a lista de cursos
+    com ofertas.
+
+    Argumentos:
+    codigo -- o código do curso
+            (default \d+)
+    nivel -- nível acadêmico dos cursos buscados: graduacao ou posgraduacao.
+             (default graduacao)
+
+    O argumento 'codigo' deve ser uma expressão regular.
+    """
+
+    CURSOS = '<tr CLASS=PadraoMenor bgcolor=.*?>'\
+             '<td>(\w+)</td>' \
+             '<td>\d+</td>' \
+             '.*?aspx\?cod=(%s)>(.*?)</a></td>' \
+             '<td>(.*?)</td></tr>' % codigo
+
+    oferta = {}
+    try:
+        pagina_html = busca(url_mweb(nivel, 'curso_rel', 1))
+        cursos_existentes = encontra_padrao(CURSOS, pagina_html.content)
+        for modalidade, codigo, denominacao, turno in cursos_existentes:
+            oferta[codigo] = {}
+            oferta[codigo]['modalidade'] = modalidade
+            oferta[codigo]['denominacao'] = denominacao
+            oferta[codigo]['turno'] = turno
+    except RequestException as erro:
+        pass
+        # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
+
+    return oferta
+
+
+def departamentos(codigo='\d+', nivel='graduacao'):
     """Acessa o Matrícula Web e retorna um dicionário com a lista de
     departamentos com ofertas.
 
     Argumentos:
-    codigo -- o código do Departamento que oferece as disciplinas
+    codigo -- o código do Departamento.
             (default \d+)
-    curso -- nível acadêmico das disciplinas buscadas: graduacao ou
-             posgraduacao.
+    nivel -- nível acadêmico do Departamento: graduacao ou posgraduacao.
              (default graduacao)
 
 
     O argumento 'codigo' deve ser uma expressão regular.
     """
     DEPARTAMENTOS = '<tr CLASS=PadraoMenor bgcolor=.*?>'\
-                    '<td>(%s)</td><td>(\w+)</td>' \
-                    '.*?aspx\?cod=\d+>(.*?)</a></td></tr>' % codigo
+                    '<td>\d+</td><td>(\w+)</td>' \
+                    '.*?aspx\?cod=(%s)>(.*?)</a></td></tr>' % codigo
 
     deptos = {}
     try:
-        pagina_html = busca(url_mweb(curso, 'oferta_dep', 1))
+        pagina_html = busca(url_mweb(nivel, 'oferta_dep', 1))
         deptos_existentes = encontra_padrao(DEPARTAMENTOS, pagina_html.content)
         for codigo, sigla, denominacao in deptos_existentes:
             deptos[codigo] = {}
@@ -50,19 +84,19 @@ def departamentos(codigo='\d+', curso='graduacao'):
             deptos[codigo]['denominacao'] = denominacao
     except RequestException as erro:
         pass
-        # print 'Erro ao buscar %s.\n' % codigo
+        # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
 
     return deptos
 
 
-def disciplinas(dept=116, curso='graduacao'):
+def disciplinas(dept=116, nivel='graduacao'):
     """Acessa o Matrícula Web e retorna um dicionário com a lista de
     disciplinas ofertadas por um departamento.
 
     Argumentos:
     dept -- o código do Departamento que oferece as disciplinas
             (default 116)
-    curso -- nível acadêmico das disciplinas buscadas: graduacao ou
+    nivel -- nível acadêmico das disciplinas buscadas: graduacao ou
              posgraduacao.
              (default graduacao)
 
@@ -73,18 +107,72 @@ def disciplinas(dept=116, curso='graduacao'):
 
     oferta = {}
     try:
-        pagina_html = busca(url_mweb(curso, 'oferta_dis', dept))
+        pagina_html = busca(url_mweb(nivel, 'oferta_dis', dept))
         ofertadas = encontra_padrao(DISCIPLINAS, pagina_html.content)
         for codigo, nome in ofertadas:
             oferta[codigo] = nome
     except RequestException as erro:
         pass
-        # print 'Erro ao buscar %s para %s.\n%s' % (codigo, curso, erro)
+        # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
 
     return oferta
 
 
-def lista_de_espera(codigo, turma='\w+', curso='graduacao'):
+def habilitacao(codigo, nivel='graduacao'):
+    """Acessa o Matrícula Web e retorna um dicionário com a lista de
+    informações referentes a habilitação no curso.
+
+    Argumentos:
+    dept -- o código do curso.
+            (default 116)
+    nivel -- nível acadêmico do curso: graduacao ou posgraduacao.
+             (default graduacao)
+
+    Lista completa dos Departamentos da UnB:
+    matriculaweb.unb.br/matriculaweb/graduacao/oferta_dep.aspx?cod=1
+    """
+    HABILITACAO = 'Grau: </td><td width=40% colspan=2>(\w+)</td>' \
+                  '.*?' \
+                  'Limite mínimo de permanência: </td>' \
+                  '<td align=right>(\d+)</td>' \
+                  '.*?' \
+                  'Limite máximo de permanência: </td>' \
+                  '<td align=right>(\d+)</td>' \
+                  '.*?' \
+                  'Quantidade de Créditos para Formatura: </td>' \
+                  '<td align=right>(\d+)</td>' \
+                  '.*?' \
+                  'Quantidade mínima de Créditos Optativos na Área de Concentração: </td>' \
+                  '<td align=right>(\d+)</td>' \
+                  '.*?' \
+                  'Quantidade mínima de Créditos Optativos na Área Conexa: </td>' \
+                  '<td align=right>(\d+)</td>' \
+                  '.*?' \
+                  'Quantidade máxima de Créditos no Módulo Livre: </td>' \
+                  '<td align=right>(\d+)</td>' \
+                  '.*?' \
+                  '</tr></table>'
+
+    oferta = {}
+    try:
+        pagina_html = busca(url_mweb(nivel, 'curso_dados', codigo))
+        ofertadas = encontra_padrao(HABILITACAO, pagina_html.content)
+        for grau, min, max, formatura, concentracao, conexa, livre in ofertadas:
+            oferta['Grau'] = grau
+            oferta['Limite mínimo de permanência'] = min
+            oferta['Limite máximo de permanência'] = max
+            oferta['Quantidade de Créditos para Formatura'] = formatura
+            oferta['Quantidade mínima de Créditos Optativos na Área de Concentração'] = concentracao
+            oferta['Quantidade mínima de Créditos Optativos na Área Conexa'] = conexa
+            oferta['Quantidade máxima de Créditos no Módulo Livre'] = livre
+    except RequestException as erro:
+        pass
+        # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
+
+    return oferta
+
+
+def lista_de_espera(codigo, turma='\w+', nivel='graduacao'):
     """Dado o código de uma disciplina, acessa o Matrícula Web e retorna um
     dicionário com a lista de espera para as turmas ofertadas da disciplina.
 
@@ -92,8 +180,7 @@ def lista_de_espera(codigo, turma='\w+', curso='graduacao'):
     codigo -- o código da disciplina
     turma -- identificador da turma
              (default '\w+') (todas as disciplinas)
-    curso -- nível acadêmico das disciplinas buscadas: graduacao ou
-             posgraduacao
+    nivel -- nível acadêmico da disciplina buscada: graduacao ou posgraduacao.
              (default graduacao).
 
     O argumento 'turma' deve ser uma expressão regular.
@@ -107,7 +194,7 @@ def lista_de_espera(codigo, turma='\w+', curso='graduacao'):
 
     demanda = {}
     try:
-        pagina_html = busca(url_mweb(curso, 'faltavaga_rel', codigo))
+        pagina_html = busca(url_mweb(nivel, 'faltavaga_rel', codigo))
         turmas_com_demanda = encontra_padrao(TABELA, pagina_html.content)
         for tabela in turmas_com_demanda:
             for turma, vagas_desejadas in encontra_padrao(TURMAS, tabela):
@@ -116,19 +203,18 @@ def lista_de_espera(codigo, turma='\w+', curso='graduacao'):
                     demanda[turma] = vagas
     except RequestException as erro:
         pass
-        #print 'Erro ao buscar %s para %s.\n%s' % (codigo, curso, erro)
+        #print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
 
     return demanda
 
 
-def pre_requisitos(codigo, curso='graduacao'):
+def pre_requisitos(codigo, nivel='graduacao'):
     """Dado o código de uma disciplina, acessa o Matrícula Web e retorna uma
     lista com os códigos das disciplinas que são pré-requisitos para a dada.
 
     Argumentos:
     codigo -- o código da disciplina.
-    curso -- nível acadêmico das disciplinas buscadas: graduacao ou
-             posgraduacao.
+    nivel -- nível acadêmico da disciplina: graduacao ou posgraduacao.
              (default graduacao)
 
     Cada item da lista tem uma relação 'OU' com os demais, e cada item é uma
@@ -148,26 +234,25 @@ def pre_requisitos(codigo, curso='graduacao'):
 
     pre_req = []
     try:
-        pagina_html = busca(url_mweb(curso, 'disciplina_pop', codigo))
+        pagina_html = busca(url_mweb(nivel, 'disciplina_pop', codigo))
         requisitos = encontra_padrao(DISCIPLINAS, pagina_html.content)
         for requisito in requisitos:
             for disciplinas in requisito.split(' OU<br>'):
                 pre_req.append(encontra_padrao(CODIGO, disciplinas))
     except RequestException as erro:
         pass
-        # print 'Erro ao buscar %s para %s.\n%s' % (codigo, curso, erro)
+        # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
 
     return filter(None, pre_req)
 
 
-def turmas(codigo, curso='graduacao'):
+def turmas(codigo, nivel='graduacao'):
     """Dado o código de uma disciplina, acessa o Matrícula Web e retorna um
     dicionário com a lista de turmas ofertadas para uma disciplina.
 
     Argumentos:
     codigo -- o código da disciplina.
-    curso -- nível acadêmico das disciplinas buscadas: graduacao ou
-             posgraduacao.
+    nivel -- nível acadêmico da disciplina: graduacao ou posgraduacao.
              (default graduacao)
     """
     TURMAS = '<b>Turma</b>.*?<font size=4><b>(\w+)</b></font></div>' \
@@ -177,12 +262,12 @@ def turmas(codigo, curso='graduacao'):
              '.*?' \
              '<center>(.*?)<br></center>' \
              '.*?' \
-             '(Reserva para curso.*?<td align=left>(.*?)</td>.*?)?' \
+             '(Reserva para nivel.*?<td align=left>(.*?)</td>.*?)?' \
              '<td colspan=6 bgcolor=white height=20>'
 
     oferta = {}
     try:
-        pagina_html = busca(url_mweb(curso, 'oferta_dados', codigo))
+        pagina_html = busca(url_mweb(nivel, 'oferta_dados', codigo))
         turmas_ofertadas = encontra_padrao(TURMAS, pagina_html.content)
         for turma, ocupadas, professores, aux, reserva in turmas_ofertadas:
             vagas = int(ocupadas)
@@ -194,10 +279,14 @@ def turmas(codigo, curso='graduacao'):
                     oferta[turma]['reserva'] = reserva
     except RequestException as erro:
         pass
-        # print 'Erro ao buscar %s para %s.\n%s' % (codigo, curso, erro)
+        # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
 
     return oferta
 
+
+# cursos_ = cursos()
+# for c in cursos_:
+#     print c, cursos_[c]
 
 # deptos = departamentos()
 # for d in deptos:
@@ -206,6 +295,11 @@ def turmas(codigo, curso='graduacao'):
 # oferta = disciplinas()
 # for d in oferta:
 #     print d, oferta[d]
+
+# oferta = habilitacao(370)
+# for h in oferta:
+#     print h, oferta[h]
+
 
 # oferta = lista_de_espera(113476)
 # for d in oferta:

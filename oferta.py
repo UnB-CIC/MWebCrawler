@@ -40,11 +40,12 @@ def departamentos(codigo='\d+', nivel='graduacao', campus=DARCY_RIBEIRO):
         deptos_existentes = encontra_padrao(DEPARTAMENTOS, pagina_html.content)
         for codigo, sigla, denominacao in deptos_existentes:
             deptos[codigo] = {}
-            deptos[codigo]['sigla'] = sigla
-            deptos[codigo]['denominacao'] = denominacao
+            deptos[codigo]['Sigla'] = sigla
+            deptos[codigo]['Denominação'] = denominacao
     except RequestException as erro:
         pass
-        # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
+        # print 'Erro ao buscar %s para %s em %d.\n%s' %
+        #     (codigo, nivel, campus, erro)
 
     return deptos
 
@@ -179,10 +180,10 @@ def turmas(codigo, nivel='graduacao'):
             vagas = int(ocupadas)
             if vagas > 0:
                 oferta[turma] = {}
-                oferta[turma]['matriculados'] = vagas
-                oferta[turma]['professores'] = professores.split('<br>')
+                oferta[turma]['Alunos Matriculados'] = vagas
+                oferta[turma]['Professores'] = professores.split('<br>')
                 if reserva:
-                    oferta[turma]['reserva'] = reserva
+                    oferta[turma]['Turma Reservada'] = reserva
     except RequestException as erro:
         pass
         # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)

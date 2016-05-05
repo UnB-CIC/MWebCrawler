@@ -38,7 +38,7 @@ def departamentos(codigo='\d+', nivel='graduacao', campus=DARCY_RIBEIRO):
     try:
         pagina_html = busca(url_mweb(nivel, 'oferta_dep', campus))
         deptos_existentes = encontra_padrao(DEPARTAMENTOS, pagina_html.content)
-        for codigo, sigla, denominacao in deptos_existentes:
+        for sigla, codigo, denominacao in deptos_existentes:
             deptos[codigo] = {}
             deptos[codigo]['Sigla'] = sigla
             deptos[codigo]['Denominação'] = denominacao

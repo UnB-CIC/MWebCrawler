@@ -169,7 +169,7 @@ def turmas(codigo, nivel='graduacao'):
              '.*?' \
              '<center>(.*?)<br></center>' \
              '.*?' \
-             '(Reserva para nivel.*?<td align=left>(.*?)</td>.*?)?' \
+             '(Reserva para curso.*?<td align=left>(.*?)</td>.*?)?' \
              '<td colspan=6 bgcolor=white height=20>'
 
     oferta = {}
@@ -191,22 +191,24 @@ def turmas(codigo, nivel='graduacao'):
     return oferta
 
 
-# deptos = departamentos()
-# for d in deptos:
-#     print d, deptos[d]
+if __name__ == '__main__':
+    # deptos = departamentos()
+    # for d in deptos:
+    #     print d, deptos[d]
 
-# oferta = disciplinas()
-# for d in oferta:
-#     print d, oferta[d]
+    # oferta = disciplinas()
+    # for d in oferta:
+    #     print d, oferta[d]
 
-# l_espera = lista_de_espera(113476)
-# for turma in l_espera:
-#     print turma, l_espera[turma]
+    # l_espera = lista_de_espera(113476)
+    # for turma in l_espera:
+    #     print turma, l_espera[turma]
 
-# disciplinas_ = pre_requisitos(116424)
-# for d in disciplinas_:
-#     print d
+    # disciplinas_ = pre_requisitos(116424)
+    # for d in disciplinas_:
+    #     print d
 
-# turmas_ = turmas(116319)
-# for d in turmas_:
-    # print d, turmas_[d]
+    # turmas_ = turmas(116319)
+    turmas_ = turmas(116343)
+    for d in turmas_:
+        print d, turmas_[d]

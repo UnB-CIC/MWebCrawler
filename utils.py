@@ -10,7 +10,7 @@ from re import findall as encontra_padrao
 
 
 # Construção de links para o Matrícula Web.
-mweb = lambda nivel: 'https://matriculaweb.unb.br/matriculaweb/' + str(nivel)
+mweb = lambda nivel: 'https://matriculaweb.unb.br/' + str(nivel)
 link = lambda pagina, cod: str(pagina) + '.aspx?cod=' + str(cod)
 url_mweb = lambda nivel, pagina, cod: mweb(nivel) + '/' + link(pagina, cod)
 

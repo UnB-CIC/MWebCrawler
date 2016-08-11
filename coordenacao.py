@@ -45,6 +45,7 @@ def monitoria(oferta_, num_bolsas):
     oferta_ -- um iterável cujos elementos são os códigos das disciplinas
     num_bolsas -- a quantidade de bolsas a serem distribuídas
     """
+    MIN_ALUNOS_POR_TURMA = 10
     def processa(categoria, disciplinas, num_bolsas):
         for k in sorted(categoria, key=categoria.get, reverse=True):
             if num_bolsas == 0:
@@ -69,7 +70,7 @@ def monitoria(oferta_, num_bolsas):
             # curso...
             if 'Turma Reservada' in turma:
                 obrigatorias[cod + ' ' + t] = turma['Alunos Matriculados']
-            elif turma['Alunos Matriculados'] >= 10:
+            elif turma['Alunos Matriculados'] >= MIN_ALUNOS_POR_TURMA:
                 optativas[cod + ' ' + t] = turma['Alunos Matriculados']
 
     # Regra 1
@@ -85,8 +86,6 @@ def monitoria(oferta_, num_bolsas):
 
     # Regra 3
     if num_bolsas > 0:
-        todas = obrigatorias
-        todas.update(optativas)
         while num_bolsas > 0:
             num_bolsas = processa(todas, disciplinas, num_bolsas)
 
@@ -121,7 +120,9 @@ if __name__ == '__main__':
     #         print '%s %s (%d alunos)' % (cod, oferta_[cod], demanda)
 
     print '\nMonitoria:'
+    i = 1
     NUM_BOLSAS = 39
     bolsas = monitoria(oferta_, NUM_BOLSAS)
     for cod in sorted(bolsas):
-        print cod, bolsas[cod], oferta_[cod.split(' ')[0]]
+        print i,')', cod, bolsas[cod], oferta_[cod.split(' ')[0]]
+        i = i + 1

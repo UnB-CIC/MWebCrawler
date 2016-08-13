@@ -209,6 +209,8 @@ if __name__ == '__main__':
     #     print d
 
     # turmas_ = turmas(116319)
-    turmas_ = turmas(116343)
-    for d in turmas_:
-        print d, turmas_[d]
+    # turmas_ = turmas(116343)
+    # for d in turmas_:
+    #     print d, turmas_[d]
+
+    pass

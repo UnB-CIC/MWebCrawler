@@ -6,6 +6,7 @@
 
 
 import oferta
+import curso
 
 
 def alunos_matriculados(codigo, nivel='graduacao'):
@@ -20,7 +21,7 @@ def alunos_matriculados(codigo, nivel='graduacao'):
     """
     disciplinas = oferta.turmas(cod, nivel)
 
-    return sum([disciplinas[turma]['Alunos Matriculados'] for turma in disciplinas])
+    return sum([disciplinas[t]['Alunos Matriculados'] for t in disciplinas])
 
 
 def demanda_nao_atendida(codigo, nivel='graduacao'):
@@ -46,55 +47,50 @@ def monitoria(oferta_, num_bolsas):
     num_bolsas -- a quantidade de bolsas a serem distribuídas
     """
     MIN_ALUNOS_POR_TURMA = 10
-    def processa(categoria, disciplinas, num_bolsas):
+
+    def processa(categoria, bolsas, num_bolsas):
         for k in sorted(categoria, key=categoria.get, reverse=True):
             if num_bolsas == 0:
                 break
 
-            cod, t = k.split()
-            turma = disciplinas[cod][t]
-            turma['Monitores'] += 1
+            if k not in bolsas:
+                bolsas[k] = 0
+            bolsas[k] += 1
             num_bolsas -= 1
-            categoria[k] = turma['Alunos Matriculados'] / turma['Monitores']
         return num_bolsas
 
-    disciplinas = {}
-    obrigatorias, optativas = {}, {}
+    cursos_CIC = [curso.Habilitacao.BACHARELADO,
+                  curso.Habilitacao.LICENCIATURA,
+                  curso.Habilitacao.ENGENHARIA_DE_COMPUTACAO,
+                  curso.Habilitacao.ENGENHARIA_MECATRONICA]
+    obrigatorias = {}
+    for codigo in cursos_CIC:
+        disciplinas_obr = curso.obrigatorias(codigo)
+        for cod in disciplinas_obr:
+            if cod not in obrigatorias and cod in oferta_:
+                turmas = oferta.turmas(cod)
+                for t in turmas:
+                    key = cod + ' ' + t
+                    obrigatorias[key] = turmas[t]['Alunos Matriculados']
+
+    optativas = {}
     for cod in oferta_:
-        disciplinas[cod] = oferta.turmas(cod)
-        for t in disciplinas[cod]:
-            turma = disciplinas[cod][t]
-            turma['Monitores'] = 0
-            # @to-do Confirmar se a existência de reserva implica na disciplina
-            # ser obrigatória. O jeito "certo" seria buscar no fluxo de cada
-            # curso...
-            if 'Turma Reservada' in turma:
-                obrigatorias[cod + ' ' + t] = turma['Alunos Matriculados']
-            elif turma['Alunos Matriculados'] >= MIN_ALUNOS_POR_TURMA:
-                optativas[cod + ' ' + t] = turma['Alunos Matriculados']
-
-    # Regra 1
-    # Ordenação arbitrária pela quantidade de alunos matriculados
-    sorted(obrigatorias, key=obrigatorias.get)
-    num_bolsas = processa(obrigatorias, disciplinas, num_bolsas)
-
-    # Regra 2
-    if num_bolsas > 0:
-        # Ordenação arbitrária pela quantidade de alunos matriculados
-        sorted(optativas, key=obrigatorias.get)
-        num_bolsas = processa(optativas, disciplinas, num_bolsas)
-
-    # Regra 3
-    if num_bolsas > 0:
-        while num_bolsas > 0:
-            num_bolsas = processa(todas, disciplinas, num_bolsas)
+        if cod not in obrigatorias:
+            turmas = oferta.turmas(cod)
+            for t in turmas:
+                key = cod + ' ' + t
+                optativas[key] = turmas[t]['Alunos Matriculados']
 
     bolsas = {}
-    for cod in disciplinas:
-        for t in disciplinas[cod]:
-            turma = disciplinas[cod][t]
-            if turma['Monitores'] > 0:
-                bolsas[cod + ' ' + t] = turma['Monitores']
+    # Regra 1
+    num_bolsas = processa(obrigatorias, bolsas, num_bolsas)
+
+    # Regra 2
+    num_bolsas = processa(optativas, bolsas, num_bolsas)
+
+    # Regra 3
+    while num_bolsas > 0:
+        num_bolsas = processa(obrigatorias, bolsas, num_bolsas)
 
     return bolsas
 
@@ -123,6 +119,8 @@ if __name__ == '__main__':
     i = 1
     NUM_BOLSAS = 39
     bolsas = monitoria(oferta_, NUM_BOLSAS)
-    for cod in sorted(bolsas):
-        print i,')', cod, bolsas[cod], oferta_[cod.split(' ')[0]]
+    for k in sorted(bolsas):
+        cod, t = k.split(' ')
+        turmas = oferta.turmas(cod)
+        print i,')', cod, oferta_[cod], t, bolsas[k], '(', turmas[t]['Alunos Matriculados'],')'
         i = i + 1

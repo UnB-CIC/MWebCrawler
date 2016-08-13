@@ -12,6 +12,12 @@
 
 from utils import *
 
+class Habilitacao:
+    BACHARELADO = 1856
+    LICENCIATURA = 906
+    ENGENHARIA_DE_COMPUTACAO = 1341
+    ENGENHARIA_MECATRONICA = 6912
+
 
 def cursos(codigo='\d+', nivel='graduacao', campus=DARCY_RIBEIRO):
     """Acessa o Matrícula Web e retorna um dicionário com a lista de cursos.
@@ -178,18 +184,53 @@ def fluxo(codigo, nivel='graduacao'):
     return curso
 
 
-# cursos_ = cursos()
-# for c in cursos_:
-#     print c, cursos_[c]
+def obrigatorias(curso, nivel='graduacao'):
+    """Dado o código de um curso, acessa o Matrícula Web e retorna um
+    dicionário com os códigos das disciplinas obrigatórias deste.
 
-# d = disciplina(181196)
-# for c in d:
-#     print c, d[c]
+    Argumentos:
+    curso -- o código do curso.
+    nivel -- nível acadêmico do curso: graduacao ou posgraduacao.
+             (default graduacao)
+    """
+    OBRIGATORIAS = 'DISCIPLINAS OBRIGATÓRIAS(.*?)DISCIPLINAS OPTATIVAS'
+    DISCIPLINA = 'disciplina.aspx\?cod=(\d+)>.*?</b> - (.*?)</a>'
 
-# oferta = habilitacao(680)
-# for h in oferta:
-#     print h, oferta[h]
+    disciplinas = {}
+    try:
 
-# periodos = fluxo(6912)  # 1856)
-# for p in periodos:
-#     print "Período ", p, periodos[p]
+        pagina_html = busca(url_mweb(nivel, 'curriculo', curso))
+        disciplinas_obrigatorias = encontra_padrao(OBRIGATORIAS, pagina_html.content)
+        for disciplina_obr in disciplinas_obrigatorias:
+            for codigo, disciplina in encontra_padrao(DISCIPLINA, disciplina_obr):
+                disciplinas[codigo] = disciplina.strip()
+    except RequestException as erro:
+        pass
+        # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
+
+    return disciplinas
+
+
+if __name__ == '__main__':
+    # cursos_ = cursos()
+    # for c in cursos_:
+    #     print c, cursos_[c]
+
+    # d = disciplina(181196)
+    # for c in d:
+    #     print c, d[c]
+
+    # oferta = habilitacao(680)
+    # for h in oferta:
+    #     print h, oferta[h]
+
+    # periodos = fluxo(6912)  # 1856)
+    # for p in periodos:
+    #     print "Período ", p, periodos[p]
+
+    # disciplinas_obrigatorias = obrigatorias(Habilitacao.MECATRONICA)
+    # print 'teste'
+    # for cod in disciplinas_obrigatorias:
+    #     print cod, disciplinas_obrigatorias[cod]
+
+    pass

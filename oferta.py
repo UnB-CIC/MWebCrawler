@@ -14,7 +14,7 @@
 from utils import *
 
 
-def departamentos(codigo='\d+', nivel='graduacao', campus=DARCY_RIBEIRO):
+def departamentos(codigo='\d+', nivel='graduacao', campus=DARCY_RIBEIRO, verbose=False):
     """Acessa o Matrícula Web e retorna um dicionário com a lista de
     departamentos com ofertas.
 
@@ -26,6 +26,7 @@ def departamentos(codigo='\d+', nivel='graduacao', campus=DARCY_RIBEIRO):
     campus -- o campus onde o curso é oferecido: DARCY_RIBEIRO, PLANALTINA,
               CEILANDIA ou GAMA
               (default DARCY_RIBEIRO)
+    verbose -- indicação dos procedimentos sendo adotados
 
 
     O argumento 'codigo' deve ser uma expressão regular.
@@ -36,13 +37,15 @@ def departamentos(codigo='\d+', nivel='graduacao', campus=DARCY_RIBEIRO):
 
     deptos = {}
     try:
+        if verbose:
+            log('Buscando a informações de departamentos com oferta')
         pagina_html = busca(url_mweb(nivel, 'oferta_dep', campus))
         deptos_existentes = encontra_padrao(DEPARTAMENTOS, pagina_html.content)
         for sigla, codigo, denominacao in deptos_existentes:
             deptos[codigo] = {}
             deptos[codigo]['Sigla'] = sigla
             deptos[codigo]['Denominação'] = denominacao
-    except RequestException as erro:
+    except RequestException:
         pass
         # print 'Erro ao buscar %s para %s em %d.\n%s' %
         #     (codigo, nivel, campus, erro)
@@ -50,7 +53,7 @@ def departamentos(codigo='\d+', nivel='graduacao', campus=DARCY_RIBEIRO):
     return deptos
 
 
-def disciplinas(dept=116, nivel='graduacao'):
+def disciplinas(dept=116, nivel='graduacao', verbose=False):
     """Acessa o Matrícula Web e retorna um dicionário com a lista de
     disciplinas ofertadas por um departamento.
 
@@ -60,6 +63,7 @@ def disciplinas(dept=116, nivel='graduacao'):
     nivel -- nível acadêmico das disciplinas buscadas: graduacao ou
              posgraduacao.
              (default graduacao)
+    verbose -- indicação dos procedimentos sendo adotados
 
     Lista completa dos Departamentos da UnB:
     matriculaweb.unb.br/matriculaweb/graduacao/oferta_dep.aspx?cod=1
@@ -68,18 +72,20 @@ def disciplinas(dept=116, nivel='graduacao'):
 
     oferta = {}
     try:
+        if verbose:
+            log('Buscando a informações de disciplinas do departamento ' + str(dept))
         pagina_html = busca(url_mweb(nivel, 'oferta_dis', dept))
         ofertadas = encontra_padrao(DISCIPLINAS, pagina_html.content)
         for codigo, nome in ofertadas:
             oferta[codigo] = nome
-    except RequestException as erro:
+    except RequestException:
         pass
         # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
 
     return oferta
 
 
-def lista_de_espera(codigo, turma='\w+', nivel='graduacao'):
+def lista_de_espera(codigo, turma='\w+', nivel='graduacao', verbose=False):
     """Dado o código de uma disciplina, acessa o Matrícula Web e retorna um
     dicionário com a lista de espera para as turmas ofertadas da disciplina.
 
@@ -89,6 +95,7 @@ def lista_de_espera(codigo, turma='\w+', nivel='graduacao'):
              (default '\w+') (todas as disciplinas)
     nivel -- nível acadêmico da disciplina buscada: graduacao ou posgraduacao.
              (default graduacao).
+    verbose -- indicação dos procedimentos sendo adotados
 
     O argumento 'turma' deve ser uma expressão regular.
     """
@@ -101,6 +108,8 @@ def lista_de_espera(codigo, turma='\w+', nivel='graduacao'):
 
     demanda = {}
     try:
+        if verbose:
+            log('Buscando as turmas com lista de espera para a disciplina ' + str(codigo))
         pagina_html = busca(url_mweb(nivel, 'faltavaga_rel', codigo))
         turmas_com_demanda = encontra_padrao(TABELA, pagina_html.content)
         for tabela in turmas_com_demanda:
@@ -108,14 +117,14 @@ def lista_de_espera(codigo, turma='\w+', nivel='graduacao'):
                 vagas = int(vagas_desejadas)
                 if vagas > 0:
                     demanda[turma] = vagas
-    except RequestException as erro:
+    except RequestException:
         pass
-        #print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
+        # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
 
     return demanda
 
 
-def pre_requisitos(codigo, nivel='graduacao'):
+def pre_requisitos(codigo, nivel='graduacao', verbose=False):
     """Dado o código de uma disciplina, acessa o Matrícula Web e retorna uma
     lista com os códigos das disciplinas que são pré-requisitos para a dada.
 
@@ -123,6 +132,7 @@ def pre_requisitos(codigo, nivel='graduacao'):
     codigo -- o código da disciplina.
     nivel -- nível acadêmico da disciplina: graduacao ou posgraduacao.
              (default graduacao)
+    verbose -- indicação dos procedimentos sendo adotados
 
     Cada item da lista tem uma relação 'OU' com os demais, e cada item é uma
     outra lista cujos itens têm uma relaçã 'E' entre si. Por exemplo: o
@@ -141,19 +151,21 @@ def pre_requisitos(codigo, nivel='graduacao'):
 
     pre_req = []
     try:
+        if verbose:
+            log('Buscando a lista de pré-requisitos para a disciplina ' + str(codigo))
         pagina_html = busca(url_mweb(nivel, 'disciplina_pop', codigo))
         requisitos = encontra_padrao(DISCIPLINAS, pagina_html.content)
         for requisito in requisitos:
             for disciplinas in requisito.split(' OU<br>'):
                 pre_req.append(encontra_padrao(CODIGO, disciplinas))
-    except RequestException as erro:
+    except RequestException:
         pass
         # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
 
     return filter(None, pre_req)
 
 
-def turmas(codigo, nivel='graduacao'):
+def turmas(codigo, nivel='graduacao', verbose=False):
     """Dado o código de uma disciplina, acessa o Matrícula Web e retorna um
     dicionário com a lista de turmas ofertadas para uma disciplina.
 
@@ -161,19 +173,22 @@ def turmas(codigo, nivel='graduacao'):
     codigo -- o código da disciplina.
     nivel -- nível acadêmico da disciplina: graduacao ou posgraduacao.
              (default graduacao)
+    verbose -- indicação dos procedimentos sendo adotados
     """
     TURMAS = '<b>Turma</b>.*?<font size=4><b>(\w+)</b></font></div>' \
              '.*?' \
              '<td>Ocupadas</td>' \
              '<td><b><font color=(?:red|green)>(\d+)</font></b></td>' \
              '.*?' \
-             '<center>(.*?)<br></center>' \
+             '<center>(.*?)(?:|<br>)</center>' \
              '.*?' \
              '(Reserva para curso.*?<td align=left>(.*?)</td>.*?)?' \
              '<td colspan=6 bgcolor=white height=20>'
 
     oferta = {}
     try:
+        if verbose:
+            log('Buscando as turmas da disciplina ' + str(codigo))
         pagina_html = busca(url_mweb(nivel, 'oferta_dados', codigo))
         turmas_ofertadas = encontra_padrao(TURMAS, pagina_html.content)
         for turma, ocupadas, professores, aux, reserva in turmas_ofertadas:
@@ -184,7 +199,7 @@ def turmas(codigo, nivel='graduacao'):
                 oferta[turma]['Professores'] = professores.split('<br>')
                 if reserva:
                     oferta[turma]['Turma Reservada'] = reserva
-    except RequestException as erro:
+    except RequestException:
         pass
         # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
 

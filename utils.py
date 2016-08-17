@@ -5,7 +5,7 @@
 # Utilidades.
 
 from requests import get as busca
-from requests.exceptions import RequestException as RequestException
+from requests.exceptions import RequestException
 from re import findall as encontra_padrao
 
 
@@ -20,3 +20,7 @@ DARCY_RIBEIRO = 1
 PLANALTINA = 2
 CEILANDIA = 3
 GAMA = 4
+
+
+def log(msg):
+	print msg

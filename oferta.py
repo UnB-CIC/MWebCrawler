@@ -14,7 +14,8 @@
 from utils import *
 
 
-def departamentos(codigo='\d+', nivel='graduacao', campus=DARCY_RIBEIRO, verbose=False):
+def departamentos(codigo='\d+', nivel='graduacao',
+                  campus=UnBEnum.Campus.DARCY_RIBEIRO, verbose=False):
     '''Acessa o Matrícula Web e retorna um dicionário com a lista de
     departamentos com ofertas.
 
@@ -73,7 +74,8 @@ def disciplinas(dept=116, nivel='graduacao', verbose=False):
     oferta = {}
     try:
         if verbose:
-            log('Buscando a informações de disciplinas do departamento ' + str(dept))
+            log('Buscando a informações de disciplinas do departamento ' +
+                str(dept))
         pagina_html = busca(url_mweb(nivel, 'oferta_dis', dept))
         ofertadas = encontra_padrao(DISCIPLINAS, pagina_html.content)
         for codigo, nome in ofertadas:
@@ -109,7 +111,8 @@ def lista_de_espera(codigo, turma='\w+', nivel='graduacao', verbose=False):
     demanda = {}
     try:
         if verbose:
-            log('Buscando as turmas com lista de espera para a disciplina ' + str(codigo))
+            log('Buscando as turmas com lista de espera para a disciplina ' +
+                str(codigo))
         pagina_html = busca(url_mweb(nivel, 'faltavaga_rel', codigo))
         turmas_com_demanda = encontra_padrao(TABELA, pagina_html.content)
         for tabela in turmas_com_demanda:
@@ -135,7 +138,7 @@ def pre_requisitos(codigo, nivel='graduacao', verbose=False):
     verbose -- indicação dos procedimentos sendo adotados
 
     Cada item da lista tem uma relação 'OU' com os demais, e cada item é uma
-    outra lista cujos itens têm uma relaçã 'E' entre si. Por exemplo: o
+    outra lista cujos itens têm uma relação 'E' entre si. Por exemplo: o
     resultado da busca por 116424 (Transmissão de Dados) é:
     [['117251'], ['116394', '113042']]
     que deve ser lido como
@@ -152,7 +155,8 @@ def pre_requisitos(codigo, nivel='graduacao', verbose=False):
     pre_req = []
     try:
         if verbose:
-            log('Buscando a lista de pré-requisitos para a disciplina ' + str(codigo))
+            log('Buscando a lista de pré-requisitos para a disciplina ' +
+                str(codigo))
         pagina_html = busca(url_mweb(nivel, 'disciplina_pop', codigo))
         requisitos = encontra_padrao(DISCIPLINAS, pagina_html.content)
         for requisito in requisitos:
@@ -205,13 +209,13 @@ def turmas(codigo, nivel='graduacao', verbose=False):
 
 
 if __name__ == '__main__':
-    # deptos = departamentos()
-    # for d in deptos:
-    #     print d, deptos[d]
+    # departamentos_ = departamentos()
+    # for dept in departamentos_:
+    #     print dept, departamentos_[dept]
 
     # oferta = disciplinas()
-    # for d in oferta:
-    #     print d, oferta[d]
+    # for disciplina in oferta:
+    #     print disciplina, oferta[disciplina]
 
     # l_espera = lista_de_espera(113476)
     # for turma in l_espera:
@@ -223,7 +227,7 @@ if __name__ == '__main__':
 
     # turmas_ = turmas(116319)
     # turmas_ = turmas(116343)
-    # for d in turmas_:
-    #     print d, turmas_[d]
+    # for t in turmas_:
+    #     print t, turmas_[t]
 
     pass

@@ -8,20 +8,32 @@
 import oferta
 
 
-def pre_requisitos(codigo, prefixo=''):
+def pre_requisitos(codigo, nivel='graduacao', profundidade=0, verbose=False):
     '''Dado o código de uma disciplina, obtém recursivamente a lista de
     disciplinas que são pré-requisitos para o código dado e as escreve na saída
     padrão, acrescentando um caractere de tabulação ao prefixo a cada nível de
     profundidade.
 
     Argumentos:
-    codigo -- o código do Departamento que oferece as disciplinas
-            (default 116)
-    curso -- nível acadêmico das disciplinas buscadas: graduacao ou
-             posgraduacao.
+    codigo -- o código da disciplina
+    nivel -- nível acadêmico das disciplinas buscadas: graduacao ou
+             posgraduacao
+             (default graduacao).
+    profundidade -- profundidade da busca
+    verbose -- indicação dos procedimentos sendo adotados
     '''
-    print '%s%s' % (prefixo, codigo)
-    prefixo = '\t' + prefixo
-    for preq in oferta.pre_requisitos(codigo):
-        for c in preq:
-            pre_requisitos(c, prefixo)
+    disciplinas = {}
+    for pre_reqs in oferta.pre_requisitos(codigo, nivel, verbose):
+        for pr in pre_reqs:
+            prs = pre_requisitos(pr, nivel, profundidade + 1, verbose)
+            disciplinas[pr] = prs
+
+    return disciplinas
+
+
+if __name__ == '__main__':
+    # disciplinas = pre_requisitos(116343, verbose=True)
+    # for disciplina in disciplinas:
+    #     print disciplina, disciplinas[disciplina]
+
+    pass

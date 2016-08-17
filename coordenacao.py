@@ -5,8 +5,8 @@
 # Funções úteis para coordenação.
 
 
+from curso import curriculo
 import oferta
-import curso
 
 
 def alunos_matriculados(codigo, nivel='graduacao', verbose=False):
@@ -20,7 +20,7 @@ def alunos_matriculados(codigo, nivel='graduacao', verbose=False):
              (default graduacao).
     verbose -- indicação dos procedimentos sendo adotados
     '''
-    disciplinas = oferta.turmas(cod, nivel, verbose=verbose)
+    disciplinas = oferta.turmas(codigo, nivel, verbose=verbose)
 
     return sum([disciplinas[t]['Alunos Matriculados'] for t in disciplinas])
 
@@ -36,7 +36,7 @@ def demanda_nao_atendida(codigo, nivel='graduacao', verbose=False):
              (default graduacao).
     verbose -- indicação dos procedimentos sendo adotados
     '''
-    lista = oferta.lista_de_espera(cod, nivel, verbose=verbose)
+    lista = oferta.lista_de_espera(codigo, nivel=nivel, verbose=verbose)
     return sum(lista.values())
 
 
@@ -46,7 +46,8 @@ def ocupacao(oferta_, cursos, nivel='graduacao', verbose=False):
 
     Argumentos:
     oferta_ -- dicionário com a lista de oferta
-    cursos -- lista com os cursos com disciplinas (da oferta) em seus curriculos
+    cursos -- lista com os cursos com disciplinas (da oferta) em seus
+              curriculos
     nivel -- nível acadêmico das disciplinas buscadas: graduacao ou
              posgraduacao
              (default graduacao).
@@ -54,7 +55,7 @@ def ocupacao(oferta_, cursos, nivel='graduacao', verbose=False):
     '''
     obr, opt = set(), set()
     for codigo in cursos:
-        disciplinas = curso.curriculo(codigo, nivel, verbose)
+        disciplinas = curriculo(codigo, nivel, verbose)
         obr.update(disciplinas['obrigatórias'])
         opt.update(disciplinas['optativas'])
     opt = opt.difference(obr)
@@ -82,7 +83,8 @@ def ocupacao_minima(oferta_, cursos, quorum, nivel='graduacao', verbose=False):
 
     Argumentos:
     oferta_ -- dicionário com a lista de oferta
-    cursos -- lista com os cursos com disciplinas (da oferta) em seus curriculos
+    cursos -- lista com os cursos com disciplinas (da oferta) em seus
+              curriculos
     quorum -- quantidade mínima de alunos em uma turma
     nivel -- nível acadêmico das disciplinas buscadas: graduacao ou
              posgraduacao
@@ -110,26 +112,30 @@ if __name__ == '__main__':
         oferta_ = oferta.disciplinas()
 
     # print '\nAlunos matriculados:'
-    # for cod in sorted(oferta_, key=oferta_.get):
-    #     alunos = alunos_matriculados(cod)
+    # for codigo in sorted(oferta_, key=oferta_.get):
+    #     alunos = alunos_matriculados(codigo)
     #     if alunos > 0:
-    #         print '%s %s (%d alunos)' % (cod, oferta_[cod], alunos)
+    #         print '%s %s (%d alunos)' % (codigo, oferta_[codigo], alunos)
 
     # print '\nDemanda não atendida:'
-    # for cod in sorted(oferta_, key=oferta_.get):
-    #     demanda = demanda_nao_atendida(cod)
+    # for codigo in sorted(oferta_, key=oferta_.get):
+    #     demanda = demanda_nao_atendida(codigo)
     #     if demanda > 0:
-    #         print '%s %s (%d alunos)' % (cod, oferta_[cod], demanda)
-
+    #         print '%s %s (%d alunos)' % (codigo, oferta_[codigo], demanda)
 
     # '\nOcupação de turmas:'
-    cursos_atendidos = curso.UnB.Habilitacao.todas_CIC()
-    obr, opt = ocupacao_minima(oferta_, cursos_atendidos, quorum_minimo)
-    with open('obrigatorias.csv', 'w') as f:
-        for codigo in sorted(obr, key=obr.get, reverse=True):
-            cod, t = codigo.split(' ')
-            f.write(','.join([cod, oferta_[cod], t, str(obr[codigo])]) + '\n')
-    with open('optativas.csv', 'w') as f:
-        for codigo in sorted(opt, key=opt.get, reverse=True):
-            cod, t = codigo.split(' ')
-            f.write(','.join([cod, oferta_[cod], t, str(opt[codigo])]) + '\n')
+    # from utils import UnBEnum
+    # cursos_atendidos = UnBEnum.Habilitacao.todas_CIC()
+    # obr, opt = ocupacao_minima(oferta_, cursos_atendidos, quorum_minimo)
+    # print opt
+    # exit(1)
+    # with open('obrigatorias.csv', 'w') as f:
+    #     for codigo in sorted(obr, key=obr.get, reverse=True):
+    #         cod, t = codigo.split(' ')
+    #         f.write(','.join([cod, oferta_[cod], t, str(obr[codigo])]) + '\n')
+    # with open('optativas.csv', 'w') as f:
+    #     for codigo in sorted(opt, key=opt.get, reverse=True):
+    #         cod, t = codigo.split(' ')
+    #         f.write(','.join([cod, oferta_[cod], t, str(opt[codigo])]) + '\n')
+
+    pass

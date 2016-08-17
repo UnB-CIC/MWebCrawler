@@ -15,7 +15,7 @@ from utils import *
 
 
 def departamentos(codigo='\d+', nivel='graduacao', campus=DARCY_RIBEIRO, verbose=False):
-    """Acessa o Matrícula Web e retorna um dicionário com a lista de
+    '''Acessa o Matrícula Web e retorna um dicionário com a lista de
     departamentos com ofertas.
 
     Argumentos:
@@ -30,7 +30,7 @@ def departamentos(codigo='\d+', nivel='graduacao', campus=DARCY_RIBEIRO, verbose
 
 
     O argumento 'codigo' deve ser uma expressão regular.
-    """
+    '''
     DEPARTAMENTOS = '<tr CLASS=PadraoMenor bgcolor=.*?>'\
                     '<td>\d+</td><td>(\w+)</td>' \
                     '.*?aspx\?cod=(%s)>(.*?)</a></td></tr>' % codigo
@@ -54,7 +54,7 @@ def departamentos(codigo='\d+', nivel='graduacao', campus=DARCY_RIBEIRO, verbose
 
 
 def disciplinas(dept=116, nivel='graduacao', verbose=False):
-    """Acessa o Matrícula Web e retorna um dicionário com a lista de
+    '''Acessa o Matrícula Web e retorna um dicionário com a lista de
     disciplinas ofertadas por um departamento.
 
     Argumentos:
@@ -67,7 +67,7 @@ def disciplinas(dept=116, nivel='graduacao', verbose=False):
 
     Lista completa dos Departamentos da UnB:
     matriculaweb.unb.br/matriculaweb/graduacao/oferta_dep.aspx?cod=1
-    """
+    '''
     DISCIPLINAS = 'oferta_dados.aspx\?cod=(\d+).*?>(.*?)</a>'
 
     oferta = {}
@@ -86,7 +86,7 @@ def disciplinas(dept=116, nivel='graduacao', verbose=False):
 
 
 def lista_de_espera(codigo, turma='\w+', nivel='graduacao', verbose=False):
-    """Dado o código de uma disciplina, acessa o Matrícula Web e retorna um
+    '''Dado o código de uma disciplina, acessa o Matrícula Web e retorna um
     dicionário com a lista de espera para as turmas ofertadas da disciplina.
 
     Argumentos:
@@ -98,7 +98,7 @@ def lista_de_espera(codigo, turma='\w+', nivel='graduacao', verbose=False):
     verbose -- indicação dos procedimentos sendo adotados
 
     O argumento 'turma' deve ser uma expressão regular.
-    """
+    '''
     TABELA = '<td><b>Turma</b></td>    ' \
              '<td><b>Vagas<br>Solicitadas</b></td>  </tr>' \
              '<tr CLASS=PadraoMenor bgcolor=.*?>  ' \
@@ -125,7 +125,7 @@ def lista_de_espera(codigo, turma='\w+', nivel='graduacao', verbose=False):
 
 
 def pre_requisitos(codigo, nivel='graduacao', verbose=False):
-    """Dado o código de uma disciplina, acessa o Matrícula Web e retorna uma
+    '''Dado o código de uma disciplina, acessa o Matrícula Web e retorna uma
     lista com os códigos das disciplinas que são pré-requisitos para a dada.
 
     Argumentos:
@@ -144,7 +144,7 @@ def pre_requisitos(codigo, nivel='graduacao', verbose=False):
     Ou seja, para cursar a disciplina 116424, é preciso ter sido aprovado na
     disciplina 117251(ARQ DE PROCESSADORES DIGITAIS) ou ter sido aprovado nas
     disciplina 116394 (ORG ARQ DE COMPUTADORES) e 113042 (Cálculo 2).
-    """
+    '''
     DISCIPLINAS = '<td valign=top><b>Pré-req:</b> </td>' \
                   '<td class=PadraoMenor>(.*?)</td></tr>'
     CODIGO = '(\d{6})'
@@ -166,7 +166,7 @@ def pre_requisitos(codigo, nivel='graduacao', verbose=False):
 
 
 def turmas(codigo, nivel='graduacao', verbose=False):
-    """Dado o código de uma disciplina, acessa o Matrícula Web e retorna um
+    '''Dado o código de uma disciplina, acessa o Matrícula Web e retorna um
     dicionário com a lista de turmas ofertadas para uma disciplina.
 
     Argumentos:
@@ -174,7 +174,7 @@ def turmas(codigo, nivel='graduacao', verbose=False):
     nivel -- nível acadêmico da disciplina: graduacao ou posgraduacao.
              (default graduacao)
     verbose -- indicação dos procedimentos sendo adotados
-    """
+    '''
     TURMAS = '<b>Turma</b>.*?<font size=4><b>(\w+)</b></font></div>' \
              '.*?' \
              '<td>Ocupadas</td>' \
@@ -192,13 +192,11 @@ def turmas(codigo, nivel='graduacao', verbose=False):
         pagina_html = busca(url_mweb(nivel, 'oferta_dados', codigo))
         turmas_ofertadas = encontra_padrao(TURMAS, pagina_html.content)
         for turma, ocupadas, professores, aux, reserva in turmas_ofertadas:
-            vagas = int(ocupadas)
-            if vagas > 0:
-                oferta[turma] = {}
-                oferta[turma]['Alunos Matriculados'] = vagas
-                oferta[turma]['Professores'] = professores.split('<br>')
-                if reserva:
-                    oferta[turma]['Turma Reservada'] = reserva
+            oferta[turma] = {}
+            oferta[turma]['Alunos Matriculados'] = int(ocupadas)
+            oferta[turma]['Professores'] = professores.split('<br>')
+            if reserva:
+                oferta[turma]['Turma Reservada'] = reserva
     except RequestException:
         pass
         # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)

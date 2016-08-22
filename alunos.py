@@ -5,7 +5,7 @@
 # Funções úteis para alunos.
 
 
-import oferta
+from mwebcrawler import Disciplina
 
 
 def pre_requisitos(codigo, nivel='graduacao', profundidade=0, verbose=False):
@@ -23,8 +23,8 @@ def pre_requisitos(codigo, nivel='graduacao', profundidade=0, verbose=False):
     verbose -- indicação dos procedimentos sendo adotados
     '''
     disciplinas = {}
-    for pre_reqs in oferta.pre_requisitos(codigo, nivel, verbose):
-        for pr in pre_reqs:
+    for prerequisitos in Disciplina.pre_requisitos(codigo, nivel, verbose):
+        for pr in prerequisitos:
             prs = pre_requisitos(pr, nivel, profundidade + 1, verbose)
             disciplinas[pr] = prs
 
@@ -32,8 +32,8 @@ def pre_requisitos(codigo, nivel='graduacao', profundidade=0, verbose=False):
 
 
 if __name__ == '__main__':
-    # disciplinas = pre_requisitos(116343, verbose=True)
-    # for disciplina in disciplinas:
-    #     print disciplina, disciplinas[disciplina]
+    disciplinas = pre_requisitos(116343)
+    for disciplina in disciplinas:
+        print disciplina, disciplinas[disciplina]
 
     pass

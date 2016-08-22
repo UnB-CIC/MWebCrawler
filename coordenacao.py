@@ -151,7 +151,7 @@ def ocupacao_minima(oferta, cursos, quorum, nivel='graduacao', verbose=False):
 if __name__ == '__main__':
     dept = 116
     nivel = 'graduacao'
-    verbose = True
+    verbose = False
     quorum_minimo = 1
 
     import sys
@@ -180,7 +180,6 @@ if __name__ == '__main__':
     # cursos_atendidos = Habilitacao.todas_CIC()
     # obr, opt = ocupacao_minima(oferta, cursos_atendidos, quorum=quorum_minimo,
     #                            nivel=nivel, verbose=verbose)
-
     # with open('obrigatorias.csv', 'w') as f:
     #     for codigo in sorted(obr, key=obr.get, reverse=True):
     #         cod, t = codigo.split(' ')

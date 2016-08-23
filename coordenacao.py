@@ -6,59 +6,46 @@
 
 import mwebcrawler as UnB
 
-class Curso:
-    '''Enumeração dos códigos de cursos.'''
-    BACHARELADO = 370
-    LICENCIATURA = 906
-    ENGENHARIA_DE_COMPUTACAO = 1341
-    ENGENHARIA_MECATRONICA = 949
-    ESTATISTICA = 353
-    ENGENHARIA_MECANICA = 604
-    MATEMATICA = 141
-    MATEMATICA_NOTURNO = 752
-    MATEMATICA_LICENCIATURA = 141
-    ENGENHARIA_ELETRICA = 591
-    ENGENHARIA_CIVIL = 582
-    ENGENHARIA_FLORESTAL = 396
-    ENGENHARIA_DE_PRODUCAO = 1376
+class CIC:
+    '''Enumeração dos códigos/habilitações dos cursos associados.'''
+    BACHARELADO = {'codigo': 370, 'habilitacao': 1856}
+    LICENCIATURA = {'codigo': 906, 'habilitacao': 1899}
+    ENGENHARIA_MECATRONICA = {'codigo': 949, 'habilitacao': 6912}
+    ENGENHARIA_DE_COMPUTACAO = {'codigo': 1341, 'habilitacao': 1741}
 
-class Habilitacao:
-    '''Enumeração de habilitação de cursos.'''
-    BACHARELADO = 1856
-    LICENCIATURA = 1899
-    ENGENHARIA_DE_COMPUTACAO = 1741
-    ENGENHARIA_MECATRONICA = 6912
-    ESTATISTICA = 1716
-    ENGENHARIA_MECANICA = 6424
-    MATEMATICA = 1341
-    MATEMATICA_NOTURNO = 1368
-    MATEMATICA_LICENCIATURA = 1325
-    ENGENHARIA_ELETRICA = 6335
-    ENGENHARIA_CIVIL = 6220
-    ENGENHARIA_FLORESTAL = 6521
-    ENGENHARIA_DE_PRODUCAO = 6017
+    class ICC:
+        ENGENHARIA_CIVIL = {'codigo': 582, 'habilitacao': 6220}
+        ENGENHARIA_DE_PRODUCAO = {'codigo': 1376, 'habilitacao': 6017}
+        ENGENHARIA_ELETRICA = {'codigo': 591, 'habilitacao': 6335}
+        ENGENHARIA_FLORESTAL = {'codigo': 396, 'habilitacao': 6521}
+        ENGENHARIA_MECANICA = {'codigo': 604, 'habilitacao': 6424}
+        ESTATISTICA = {'codigo': 353, 'habilitacao': 1716}
+        MATEMATICA = {'codigo': 141, 'habilitacao': 1341}
+        MATEMATICA_LICENCIATURA = {'codigo': 141, 'habilitacao': 1325}
+        MATEMATICA_NOTURNO = {'codigo': 752, 'habilitacao': 1368}
+
 
     @classmethod
     def todas_CIC(cls):
         '''Retorna a lista de todos os cursos com disciplinas obrigatórias
         do CIC em seus currículos.
         '''
-        return[cls.BACHARELADO,
-               cls.LICENCIATURA,
-               cls.ENGENHARIA_DE_COMPUTACAO,
-               cls.ENGENHARIA_MECATRONICA,
-               cls.ENGENHARIA_CIVIL,
-               cls.ENGENHARIA_ELETRICA,
-               cls.ENGENHARIA_FLORESTAL,
-               cls.ENGENHARIA_MECANICA,
-               cls.ENGENHARIA_DE_PRODUCAO,
-               cls.ESTATISTICA,
-               cls.MATEMATICA,
-               cls.MATEMATICA_LICENCIATURA,
-               cls.MATEMATICA_NOTURNO]
+        return[cls.BACHARELADO['habilitacao'],
+               cls.LICENCIATURA['habilitacao'],
+               cls.ENGENHARIA_DE_COMPUTACAO['habilitacao'],
+               cls.ENGENHARIA_MECATRONICA['habilitacao'],
+               cls.ICC.ENGENHARIA_CIVIL['habilitacao'],
+               cls.ICC.ENGENHARIA_ELETRICA['habilitacao'],
+               cls.ICC.ENGENHARIA_FLORESTAL['habilitacao'],
+               cls.ICC.ENGENHARIA_MECANICA['habilitacao'],
+               cls.ICC.ENGENHARIA_DE_PRODUCAO['habilitacao'],
+               cls.ICC.ESTATISTICA['habilitacao'],
+               cls.ICC.MATEMATICA['habilitacao'],
+               cls.ICC.MATEMATICA_LICENCIATURA['habilitacao'],
+               cls.ICC.MATEMATICA_NOTURNO['habilitacao']]
 
 
-def alunos_matriculados(codigo, nivel='graduacao', verbose=False):
+def alunos_matriculados(codigo, nivel=UnB.Nivel.GRADUACAO, verbose=False):
     '''Retorna o total de alunos matriculados em todas as turmas da disciplina
     do código dado.
 
@@ -74,7 +61,7 @@ def alunos_matriculados(codigo, nivel='graduacao', verbose=False):
     return sum([disciplinas[t]['Alunos Matriculados'] for t in disciplinas])
 
 
-def demanda_nao_atendida(codigo, nivel='graduacao', verbose=False):
+def demanda_nao_atendida(codigo, nivel=UnB.Nivel.GRADUACAO, verbose=False):
     '''Retorna o total de alunos inscritos na lista de espera da disciplina do
     código dado. Considera todas as turmas.
 
@@ -89,7 +76,7 @@ def demanda_nao_atendida(codigo, nivel='graduacao', verbose=False):
     return sum(lista.values())
 
 
-def ocupacao(oferta, cursos, nivel='graduacao', verbose=False):
+def ocupacao(oferta, cursos, nivel=UnB.Nivel.GRADUACAO, verbose=False):
     '''Retorna dois dicionários (obrigatórias e optativas) com o total de
     alunos inscritos em cada turma de cada disciplina ofertada por cada curso.
 
@@ -125,7 +112,8 @@ def ocupacao(oferta, cursos, nivel='graduacao', verbose=False):
     return obrigatorias, optativas
 
 
-def ocupacao_minima(oferta, cursos, quorum, nivel='graduacao', verbose=False):
+def ocupacao_minima(oferta, cursos, quorum, nivel=UnB.Nivel.GRADUACAO,
+                    verbose=False):
     '''Retorna dois dicionários (obrigatórias e optativas) com o total de
     alunos inscritos em cada turma de cada disciplina ofertada cuja quantidade
     de alunos seja igual ou superior ao limite dado.
@@ -149,37 +137,30 @@ def ocupacao_minima(oferta, cursos, quorum, nivel='graduacao', verbose=False):
 
 
 if __name__ == '__main__':
-    dept = 116
-    nivel = 'graduacao'
-    verbose = False
-    quorum_minimo = 1
-
     import sys
-    if len(sys.argv) > 1:
-        dept = sys.argv[1]
-    if len(sys.argv) > 2:
-        nivel = sys.argv[1]
-    if len(sys.argv) > 3:
-        quorum_minimo = int(sys.argv[2])
+    dept = 116 if len(sys.argv) < 2 else int(sys.argv[1])
+    nivel = UnB.Nivel.GRADUACAO if len(sys.argv) < 3 else sys.argv[2]
+    quorum_minimo = 1 if len(sys.argv) < 4  else int(sys.argv[3])
+    verbose = False
 
-    oferta = UnB.Oferta.disciplinas(dept=dept, nivel=nivel, verbose=verbose)
+    oferta = UnB.Oferta.disciplinas(dept, nivel, verbose)
 
     # print '\nAlunos matriculados:'
     # for codigo in sorted(oferta, key=oferta.get):
-    #     alunos = alunos_matriculados(codigo, nivel=nivel, verbose=verbose)
+    #     alunos = alunos_matriculados(codigo, nivel, verbose)
     #     if alunos > 0:
     #         print '%s %s (%d alunos)' % (codigo, oferta[codigo], alunos)
 
     # print '\nDemanda não atendida:'
     # for codigo in sorted(oferta, key=oferta.get):
-    #     demanda = demanda_nao_atendida(codigo, nivel=nivel, verbose=verbose)
+    #     demanda = demanda_nao_atendida(codigo, nivel, verbose)
     #     if demanda > 0:
     #         print '%s %s (%d alunos)' % (codigo, oferta[codigo], demanda)
 
     # print '\nOcupação de turmas:'
-    # cursos_atendidos = Habilitacao.todas_CIC()
+    # cursos_atendidos = CIC.todas_CIC()
     # obr, opt = ocupacao_minima(oferta, cursos_atendidos, quorum=quorum_minimo,
-    #                            nivel=nivel, verbose=verbose)
+    #                            nivel, verbose)
     # with open('obrigatorias.csv', 'w') as f:
     #     for codigo in sorted(obr, key=obr.get, reverse=True):
     #         cod, t = codigo.split(' ')

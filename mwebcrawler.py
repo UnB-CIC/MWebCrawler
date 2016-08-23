@@ -22,11 +22,14 @@ def mweb(nivel, pagina, cod):
     '''Retorna a página no Matrícula Web referente às especificações dadas.'''
     escopo = 'matriculaweb.unb.br/%s' % nivel
     pagina = '%s.aspx?cod=%s' % (pagina, cod)
-    return requests.get('https://%s/%s' % (escopo, pagina))
+    html = requests.get('https://%s/%s' % (escopo, pagina))
+    return html.content
 
 
-GRADUACAO = 'graduacao'
-POS = 'posgraduacao'
+class Nivel:
+    '''Enumeração de níveis de cursos oferecidos.'''
+    GRADUACAO = 'graduacao'
+    POS = 'posgraduacao'
 
 
 class Campus:
@@ -39,8 +42,9 @@ class Campus:
 
 class Cursos:
     '''Métodos de busca associados a informações de cursos.'''
+
     @staticmethod
-    def curriculo(codigo, nivel=GRADUACAO, verbose=False):
+    def curriculo(codigo, nivel=Nivel.GRADUACAO, verbose=False):
         '''Acessa o Matrícula Web e retorna um dicionário com a lista de
         disciplinas definidas no currículo do curso.
 
@@ -59,8 +63,8 @@ class Cursos:
         try:
             if verbose:
                 log('Buscando currículo do curso ' + str(codigo))
-            pagina = mweb(nivel, 'curriculo', codigo)
-            obr_e_opts = busca(OBR_OPT, pagina.content)
+            pagina_html = mweb(nivel, 'curriculo', codigo)
+            obr_e_opts = busca(OBR_OPT, pagina_html)
             for obrigatorias, optativas in obr_e_opts:
                 disciplinas['obrigatórias'] = {}
                 for cod, disc in busca(DISCIPLINA, obrigatorias):
@@ -75,7 +79,7 @@ class Cursos:
         return disciplinas
 
     @staticmethod
-    def fluxo(codigo, nivel=GRADUACAO, verbose=False):
+    def fluxo(codigo, nivel=Nivel.GRADUACAO, verbose=False):
         '''Acessa o Matrícula Web e retorna um dicionário com a lista de
         disciplinas por período definidas no fluxo do curso.
 
@@ -93,8 +97,8 @@ class Cursos:
         try:
             if verbose:
                 log('Buscando disciplinas no fluxo do curso ' + str(codigo))
-            pagina = mweb(nivel, 'fluxo', codigo)
-            oferta = busca(PERIODO, pagina.content)
+            pagina_html = mweb(nivel, 'fluxo', codigo)
+            oferta = busca(PERIODO, pagina_html)
             for periodo, creditos, dados in oferta:
                 periodo = int(periodo)
                 curso[periodo] = {}
@@ -107,8 +111,8 @@ class Cursos:
         return curso
 
     @staticmethod
-    def habilitacoes(codigo, nivel=GRADUACAO, campus=Campus.DARCY_RIBEIRO,
-                     verbose=False):
+    def habilitacoes(codigo, nivel=Nivel.GRADUACAO,
+                     campus=Campus.DARCY_RIBEIRO, verbose=False):
         '''Acessa o Matrícula Web e retorna um dicionário com a lista de
         informações referentes a cada habilitação no curso.
 
@@ -140,8 +144,8 @@ class Cursos:
             if verbose:
                 log('Buscando informações da habilitação do curso ' +
                     str(codigo))
-            pagina = mweb(nivel, 'curso_dados', codigo)
-            oferta = busca(OPCAO, pagina.content)
+            pagina_html = mweb(nivel, 'curso_dados', codigo)
+            oferta = busca(OPCAO, pagina_html)
             for (opcao, nome, grau, l_min, l_max,
                  formatura, obr, opt, livre) in oferta:
                 dados[opcao] = {}
@@ -163,7 +167,8 @@ class Cursos:
         return dados
 
     @staticmethod
-    def relacao(nivel=GRADUACAO, campus=Campus.DARCY_RIBEIRO, verbose=False):
+    def relacao(nivel=Nivel.GRADUACAO, campus=Campus.DARCY_RIBEIRO,
+                verbose=False):
         '''Acessa o Matrícula Web e retorna um dicionário com a lista de cursos.
 
         Argumentos:
@@ -188,9 +193,9 @@ class Cursos:
         try:
             if verbose:
                 log('Buscando lista de cursos')
-            pagina = mweb(nivel, 'curso_rel', campus)
-            print pagina.content
-            cursos_existentes = busca(CURSOS, pagina.content)
+            pagina_html = mweb(nivel, 'curso_rel', campus)
+            print pagina_html
+            cursos_existentes = busca(CURSOS, pagina_html)
             for modalidade, codigo, denominacao, turno in cursos_existentes:
                 lista[codigo] = {}
                 lista[codigo]['Modalidade'] = modalidade
@@ -208,7 +213,7 @@ class Disciplina:
     '''Métodos de busca associados a informações de disciplinas.'''
 
     @staticmethod
-    def informacoes(codigo, nivel=GRADUACAO, verbose=False):
+    def informacoes(codigo, nivel=Nivel.GRADUACAO, verbose=False):
         '''Acessa o Matrícula Web e retorna um dicionário com as informações da
         disciplina.
 
@@ -235,8 +240,8 @@ class Disciplina:
         try:
             if verbose:
                 log('Buscando informações da disciplina ' + str(codigo))
-            pagina = mweb(nivel, 'disciplina', codigo)
-            informacoes = busca(DISCIPLINAS, pagina.content)
+            pagina_html = mweb(nivel, 'disciplina', codigo)
+            informacoes = busca(DISCIPLINAS, pagina_html)
             for (sigla, nome, denominacao, nivel, vigencia,
                  pre_req, ementa, programa, bibliografia) in informacoes:
                 disc['Sigla do Departamento'] = sigla
@@ -256,7 +261,7 @@ class Disciplina:
         return disc
 
     @staticmethod
-    def pre_requisitos(codigo, nivel=GRADUACAO, verbose=False):
+    def pre_requisitos(codigo, nivel=Nivel.GRADUACAO, verbose=False):
         '''Dado o código de uma disciplina, acessa o Matrícula Web e retorna
         uma lista com os códigos das disciplinas que são pré-requisitos para a
         dada.
@@ -288,8 +293,8 @@ class Disciplina:
             if verbose:
                 log('Buscando a lista de pré-requisitos para a disciplina ' +
                     str(codigo))
-            pagina = mweb(nivel, 'disciplina_pop', codigo)
-            requisitos = busca(DISCIPLINAS, pagina.content)
+            pagina_html = mweb(nivel, 'disciplina_pop', codigo)
+            requisitos = busca(DISCIPLINAS, pagina_html)
             for requisito in requisitos:
                 for disciplinas in requisito.split(' OU<br>'):
                     pre_req.append(busca(CODIGO, disciplinas))
@@ -303,8 +308,8 @@ class Disciplina:
 class Oferta:
     '''Métodos de busca associados a informações da oferta de disciplinas.'''
     @staticmethod
-    def departamentos(nivel=GRADUACAO, campus=Campus.DARCY_RIBEIRO,
-                      verbose=False):
+    def departamentos(nivel=Nivel.GRADUACAO,
+                      campus=Campus.DARCY_RIBEIRO, verbose=False):
         '''Acessa o Matrícula Web e retorna um dicionário com a lista de
         departamentos com ofertas do semestre atual.
 
@@ -327,8 +332,8 @@ class Oferta:
         try:
             if verbose:
                 log('Buscando a informações de departamentos com oferta')
-            pagina = mweb(nivel, 'oferta_dep', campus)
-            deptos_existentes = busca(DEPARTAMENTOS, pagina.content)
+            pagina_html = mweb(nivel, 'oferta_dep', campus)
+            deptos_existentes = busca(DEPARTAMENTOS, pagina_html)
             for sigla, codigo, denominacao in deptos_existentes:
                 deptos[codigo] = {}
                 deptos[codigo]['Sigla'] = sigla
@@ -341,7 +346,7 @@ class Oferta:
         return deptos
 
     @staticmethod
-    def disciplinas(dept, nivel=GRADUACAO, verbose=False):
+    def disciplinas(dept, nivel=Nivel.GRADUACAO, verbose=False):
         '''Acessa o Matrícula Web e retorna um dicionário com a lista de
         disciplinas ofertadas por um departamento.
 
@@ -362,8 +367,8 @@ class Oferta:
             if verbose:
                 log('Buscando a informações de disciplinas do departamento ' +
                     str(dept))
-            pagina = mweb(nivel, 'oferta_dis', dept)
-            ofertadas = busca(DISCIPLINAS, pagina.content)
+            pagina_html = mweb(nivel, 'oferta_dis', dept)
+            ofertadas = busca(DISCIPLINAS, pagina_html)
             for codigo, nome in ofertadas:
                 oferta[codigo] = nome
         except RequestException:
@@ -373,7 +378,8 @@ class Oferta:
         return oferta
 
     @staticmethod
-    def lista_de_espera(codigo, turma='\w+', nivel=GRADUACAO, verbose=False):
+    def lista_de_espera(codigo, turma='\w+', nivel=Nivel.GRADUACAO,
+                        verbose=False):
         '''Dado o código de uma disciplina, acessa o Matrícula Web e retorna um
         dicionário com a lista de espera para turmas ofertadas da disciplina.
 
@@ -400,8 +406,8 @@ class Oferta:
             if verbose:
                 log('Buscando turmas com lista de espera para a disciplina ' +
                     str(codigo))
-            pagina = mweb(nivel, 'faltavaga_rel', codigo)
-            turmas_com_demanda = busca(TABELA, pagina.content)
+            pagina_html = mweb(nivel, 'faltavaga_rel', codigo)
+            turmas_com_demanda = busca(TABELA, pagina_html)
             for tabela in turmas_com_demanda:
                 for turma, vagas_desejadas in busca(TURMAS, tabela):
                     vagas = int(vagas_desejadas)
@@ -414,7 +420,7 @@ class Oferta:
         return demanda
 
     @staticmethod
-    def turmas(codigo, nivel=GRADUACAO, verbose=False):
+    def turmas(codigo, nivel=Nivel.GRADUACAO, verbose=False):
         '''Dado o código de uma disciplina, acessa o Matrícula Web e retorna um
         dicionário com a lista de turmas ofertadas para uma disciplina.
 
@@ -438,8 +444,8 @@ class Oferta:
         try:
             if verbose:
                 log('Buscando as turmas da disciplina ' + str(codigo))
-            pagina = mweb(nivel, 'oferta_dados', codigo)
-            turmas_ofertadas = busca(TURMAS, pagina.content)
+            pagina_html = mweb(nivel, 'oferta_dados', codigo)
+            turmas_ofertadas = busca(TURMAS, pagina_html)
             for turma, ocupadas, professores, aux, reserva in turmas_ofertadas:
                 oferta[turma] = {}
                 oferta[turma]['Alunos Matriculados'] = int(ocupadas)

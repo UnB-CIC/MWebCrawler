@@ -169,7 +169,8 @@ class Cursos:
     @staticmethod
     def relacao(nivel=Nivel.GRADUACAO, campus=Campus.DARCY_RIBEIRO,
                 verbose=False):
-        '''Acessa o Matrícula Web e retorna um dicionário com a lista de cursos.
+        '''Acessa o Matrícula Web e retorna um dicionário com a relação de
+        cursos existentes.
 
         Argumentos:
         nivel -- nível acadêmico dos cursos: graduacao ou posgraduacao.
@@ -189,12 +190,10 @@ class Cursos:
                  '<td>(.*?)</td></tr>'
 
         lista = {}
-        print 'nivel ', nivel
         try:
             if verbose:
                 log('Buscando lista de cursos')
             pagina_html = mweb(nivel, 'curso_rel', campus)
-            print pagina_html
             cursos_existentes = busca(CURSOS, pagina_html)
             for modalidade, codigo, denominacao, turno in cursos_existentes:
                 lista[codigo] = {}

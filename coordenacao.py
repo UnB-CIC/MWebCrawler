@@ -6,44 +6,6 @@
 
 import mwebcrawler as UnB
 
-class CIC:
-    '''Enumeração dos códigos/habilitações dos cursos associados.'''
-    BACHARELADO = {'codigo': 370, 'habilitacao': 1856}
-    LICENCIATURA = {'codigo': 906, 'habilitacao': 1899}
-    ENGENHARIA_MECATRONICA = {'codigo': 949, 'habilitacao': 6912}
-    ENGENHARIA_DE_COMPUTACAO = {'codigo': 1341, 'habilitacao': 1741}
-
-    class ICC:
-        ENGENHARIA_CIVIL = {'codigo': 582, 'habilitacao': 6220}
-        ENGENHARIA_DE_PRODUCAO = {'codigo': 1376, 'habilitacao': 6017}
-        ENGENHARIA_ELETRICA = {'codigo': 591, 'habilitacao': 6335}
-        ENGENHARIA_FLORESTAL = {'codigo': 396, 'habilitacao': 6521}
-        ENGENHARIA_MECANICA = {'codigo': 604, 'habilitacao': 6424}
-        ESTATISTICA = {'codigo': 353, 'habilitacao': 1716}
-        MATEMATICA = {'codigo': 141, 'habilitacao': 1341}
-        MATEMATICA_LICENCIATURA = {'codigo': 141, 'habilitacao': 1325}
-        MATEMATICA_NOTURNO = {'codigo': 752, 'habilitacao': 1368}
-
-
-    @classmethod
-    def todas_CIC(cls):
-        '''Retorna a lista de todos os cursos com disciplinas obrigatórias
-        do CIC em seus currículos.
-        '''
-        return[cls.BACHARELADO['habilitacao'],
-               cls.LICENCIATURA['habilitacao'],
-               cls.ENGENHARIA_DE_COMPUTACAO['habilitacao'],
-               cls.ENGENHARIA_MECATRONICA['habilitacao'],
-               cls.ICC.ENGENHARIA_CIVIL['habilitacao'],
-               cls.ICC.ENGENHARIA_ELETRICA['habilitacao'],
-               cls.ICC.ENGENHARIA_FLORESTAL['habilitacao'],
-               cls.ICC.ENGENHARIA_MECANICA['habilitacao'],
-               cls.ICC.ENGENHARIA_DE_PRODUCAO['habilitacao'],
-               cls.ICC.ESTATISTICA['habilitacao'],
-               cls.ICC.MATEMATICA['habilitacao'],
-               cls.ICC.MATEMATICA_LICENCIATURA['habilitacao'],
-               cls.ICC.MATEMATICA_NOTURNO['habilitacao']]
-
 
 def alunos_matriculados(codigo, nivel=UnB.Nivel.GRADUACAO, verbose=False):
     '''Retorna o total de alunos matriculados em todas as turmas da disciplina
@@ -92,8 +54,10 @@ def ocupacao(oferta, cursos, nivel=UnB.Nivel.GRADUACAO, verbose=False):
     obr, opt = set(), set()
     for codigo in cursos:
         disciplinas = UnB.Cursos.curriculo(codigo, nivel, verbose)
-        obr.update(disciplinas['obrigatórias'])
-        opt.update(disciplinas['optativas'])
+        if 'obrigatórias' in disciplinas:
+            obr.update(disciplinas['obrigatórias'])
+        if 'optativas' in disciplinas:
+            opt.update(disciplinas['optativas'])
     opt = opt.difference(obr)
 
     obrigatorias, optativas = {}, {}
@@ -140,7 +104,8 @@ if __name__ == '__main__':
     import sys
     dept = 116 if len(sys.argv) < 2 else int(sys.argv[1])
     nivel = UnB.Nivel.GRADUACAO if len(sys.argv) < 3 else sys.argv[2]
-    quorum_minimo = 1 if len(sys.argv) < 4  else int(sys.argv[3])
+    campus = UnB.Campus.DARCY_RIBEIRO
+    quorum_minimo = 1 if len(sys.argv) < 4 else int(sys.argv[3])
     verbose = False
 
     oferta = UnB.Oferta.disciplinas(dept, nivel, verbose)
@@ -158,9 +123,13 @@ if __name__ == '__main__':
     #         print '%s %s (%d alunos)' % (codigo, oferta[codigo], demanda)
 
     # print '\nOcupação de turmas:'
-    # cursos_atendidos = CIC.todas_CIC()
-    # obr, opt = ocupacao_minima(oferta, cursos_atendidos, quorum=quorum_minimo,
-    #                            nivel, verbose)
+    # cursos = UnB.Cursos.relacao(nivel, campus, verbose)
+    # habilitacoes = [h
+    #                 for curso in cursos
+    #                 for h
+    #                 in UnB.Cursos.habilitacoes(curso, nivel, campus, verbose)]
+    # obr, opt = ocupacao_minima(oferta, habilitacoes, quorum_minimo, nivel,
+    #                            verbose)
     # with open('obrigatorias.csv', 'w') as f:
     #     for codigo in sorted(obr, key=obr.get, reverse=True):
     #         cod, t = codigo.split(' ')

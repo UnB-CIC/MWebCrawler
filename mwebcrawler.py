@@ -1,6 +1,6 @@
 #  -*- coding: utf-8 -*-
-#       @file: utils.py
-#     @author: Guilherme N. Ramos (gnramos@unb.br)
+##    @package mwebcrawler.py
+#      @author Guilherme N. Ramos (gnramos@unb.br)
 #
 # Funções de web-crawling para buscar informações de cursos da UnB. O programa
 # busca as informações com base em expressões regulares que, assume-se,
@@ -79,12 +79,12 @@ class Cursos:
         return disciplinas
 
     @staticmethod
-    def fluxo(codigo, nivel=Nivel.GRADUACAO, verbose=False):
+    def fluxo(opcao, nivel=Nivel.GRADUACAO, verbose=False):
         '''Acessa o Matrícula Web e retorna um dicionário com a lista de
         disciplinas por período definidas no fluxo do curso.
 
         Argumentos:
-        codigo -- o código do curso.
+        opcao -- o código da habilitação do curso.
         nivel -- nível acadêmico do curso: graduacao ou posgraduacao.
                  (default graduacao)
         verbose -- indicação dos procedimentos sendo adotados
@@ -96,8 +96,8 @@ class Cursos:
         curso = {}
         try:
             if verbose:
-                log('Buscando disciplinas no fluxo do curso ' + str(codigo))
-            pagina_html = mweb(nivel, 'fluxo', codigo)
+                log('Buscando disciplinas no fluxo do curso ' + str(opcao))
+            pagina_html = mweb(nivel, 'fluxo', opcao)
             oferta = busca(PERIODO, pagina_html)
             for periodo, creditos, dados in oferta:
                 periodo = int(periodo)
@@ -106,28 +106,28 @@ class Cursos:
                 curso[periodo]['Disciplinas'] = busca(DISCIPLINA, dados)
         except RequestException:
             pass
-            # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
+            # print 'Erro ao buscar %s para %s.\n%s' % (opcao, nivel, erro)
 
         return curso
 
     @staticmethod
-    def habilitacoes(codigo, nivel=Nivel.GRADUACAO,
+    def habilitacoes(curso, nivel=Nivel.GRADUACAO,
                      campus=Campus.DARCY_RIBEIRO, verbose=False):
         '''Acessa o Matrícula Web e retorna um dicionário com a lista de
         informações referentes a cada habilitação no curso.
 
         Argumentos:
-        codigo -- o código do curso.
+        curso -- o código do curso.
         nivel -- nível acadêmico do curso: graduacao ou posgraduacao.
                  (default graduacao)
         verbose -- indicação dos procedimentos sendo adotados
         '''
         OPCAO = '<a name=\d+></a><tr .*?><td  colspan=3><b>(\d+) - (.*?)' \
                 '</b></td></tr>.*?' \
-                'Grau: </td><td .*?>(\w+)</td>.*?' \
+                'Grau: </td><td .*?>(.*?)</td></tr>.*?' \
                 'Limite mínimo de permanência: </td>' \
                 '<td align=right>(\d+)</td>.*?' \
-                'Limite máximo de permanência: </td>' \
+                'Limite máximo de permanência: </td>.*?' \
                 '<td align=right>(\d+)</td>.*?' \
                 'Quantidade de Créditos para Formatura: </td>' \
                 '<td align=right>(\d+)</td>.*?' \
@@ -143,11 +143,11 @@ class Cursos:
         try:
             if verbose:
                 log('Buscando informações da habilitação do curso ' +
-                    str(codigo))
-            pagina_html = mweb(nivel, 'curso_dados', codigo)
-            oferta = busca(OPCAO, pagina_html)
+                    str(curso))
+            pagina_html = mweb(nivel, 'curso_dados', curso)
+            opcoes = busca(OPCAO, pagina_html)
             for (opcao, nome, grau, l_min, l_max,
-                 formatura, obr, opt, livre) in oferta:
+                 formatura, obr, opt, livre) in opcoes:
                 dados[opcao] = {}
                 dados[opcao]['Nome'] = nome
                 dados[opcao]['Grau'] = grau
@@ -162,7 +162,7 @@ class Cursos:
                              'Módulo Livre'] = livre
         except RequestException:
             pass
-            # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
+            # print 'Erro ao buscar %s para %s.\n%s' % (curso, nivel, erro)
 
         return dados
 
@@ -182,9 +182,8 @@ class Cursos:
 
         O argumento 'codigo' deve ser uma expressão regular.
         '''
-
         CURSOS = '<tr CLASS=PadraoMenor bgcolor=.*?>'\
-                 '<td>(\w+)</td>' \
+                 '<td>(.*?)</td>' \
                  '<td>\d+</td>' \
                  '.*?aspx\?cod=(\d+)>(.*?)</a></td>' \
                  '<td>(.*?)</td></tr>'
@@ -202,8 +201,8 @@ class Cursos:
                 lista[codigo]['Turno'] = turno
         except RequestException:
             pass
-            # print 'Erro ao buscar %s para %s em %d.\n%s' %
-            #     (codigo, nivel, campus, erro)
+            # print 'Erro ao buscar relação de cursos para %s em %d.\n%s' %
+            #     (nivel, campus, erro)
 
         return lista
 
@@ -235,7 +234,7 @@ class Disciplina:
                       'Bibliografia:</b> </td><td class=PadraoMenor>' \
                       '<p align=justify>(.*?)</P></td></tr>'
 
-        disc = {}
+        infos = {}
         try:
             if verbose:
                 log('Buscando informações da disciplina ' + str(codigo))
@@ -243,21 +242,21 @@ class Disciplina:
             informacoes = busca(DISCIPLINAS, pagina_html)
             for (sigla, nome, denominacao, nivel, vigencia,
                  pre_req, ementa, programa, bibliografia) in informacoes:
-                disc['Sigla do Departamento'] = sigla
-                disc['Nome do Departamento'] = nome
-                disc['Denominação'] = denominacao
-                disc['Nivel'] = nivel
-                disc['Vigência'] = vigencia
-                disc['Pré-requisitos'] = pre_req.replace('<br>', ' ')
-                disc['Ementa'] = ementa.replace('<br />', '\n')
+                infos['Sigla do Departamento'] = sigla
+                infos['Nome do Departamento'] = nome
+                infos['Denominação'] = denominacao
+                infos['Nivel'] = nivel
+                infos['Vigência'] = vigencia
+                infos['Pré-requisitos'] = pre_req.replace('<br>', ' ')
+                infos['Ementa'] = ementa.replace('<br />', '\n')
                 if programa:
-                    disc['Programa'] = programa.replace('<br />', '\n')
-                disc['Bibliografia'] = bibliografia.replace('<br />', '\n')
+                    infos['Programa'] = programa.replace('<br />', '\n')
+                infos['Bibliografia'] = bibliografia.replace('<br />', '\n')
         except RequestException:
             pass
             # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
 
-        return disc
+        return infos
 
     @staticmethod
     def pre_requisitos(codigo, nivel=Nivel.GRADUACAO, verbose=False):
@@ -275,11 +274,11 @@ class Disciplina:
         uma outra lista cujos itens têm uma relação 'E' entre si. Por exemplo:
         o resultado da busca por 116424 (Transmissão de Dados) é:
         [['117251'], ['116394', '113042']]
-        que deve ser lido como
+        que deve ser interpretado como
         ['117251'] OU ['116394' E '113042']
 
         Ou seja, para cursar a disciplina 116424, é preciso ter sido aprovado
-        na disciplina 117251(ARQ DE PROCESSADORES DIGITAIS) ou ter sido
+        na disciplina 117251 (ARQ DE PROCESSADORES DIGITAIS) ou ter sido
         aprovado nas disciplina 116394 (ORG ARQ DE COMPUTADORES) e 113042
         (Cálculo 2).
         '''

@@ -9,7 +9,7 @@
 # Por exemplo, a página de listagem de Departamentos com oferta de disciplinas:
 # https://matriculaweb.unb.br/graduacao/oferta_dep.aspx?cod=1
 # não carrega completamente (?), faltando informações de oferta dos Campi. Isto
-# implica que TestOferta.test_departamentos falha.
+# implica em falha de TestOferta.test_departamentos.
 
 
 from mwebcrawler import Campus, Cursos, Disciplina, Nivel, Oferta
@@ -18,14 +18,19 @@ import unittest
 
 class TestCursos(unittest.TestCase):
     def test_curriculo(self):
-        opcao = '1856'  # Bacharelado em CC
+        opcao = '6912'  # Mecatrônica
         disciplinas = Cursos.curriculo(opcao, Nivel.GRADUACAO, False)
 
         self.assertIn('obrigatórias', disciplinas)
-        self.assertIn('113476', disciplinas['obrigatórias'])
+        self.assertIn('116319', disciplinas['obrigatórias'])
+
+        self.assertIn('cadeias', disciplinas)
+        self.assertIn('6', disciplinas['cadeias'])
+        for item in disciplinas['cadeias']['6']:
+            self.assertTrue(('167011' in item) or ('111830' in item and '111848' in item))
 
         self.assertIn('optativas', disciplinas)
-        self.assertIn('113131', disciplinas['optativas'])
+        self.assertIn('113417', disciplinas['optativas'])
 
     def test_fluxo(self):
         opcao = '1741'  # Eng. Computação
@@ -106,7 +111,6 @@ class TestOferta(unittest.TestCase):
     def test_departamentos(self):
         deptos = Oferta.departamentos(Nivel.GRADUACAO, Campus.DARCY_RIBEIRO, False)
 
-        print deptos
         # Códigos escolhidos aleatoriamente
         for depto in ['115', '138', '159', '351', '550']:
             self.assertIn(depto, deptos)

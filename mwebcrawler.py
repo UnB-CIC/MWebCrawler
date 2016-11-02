@@ -53,25 +53,52 @@ class Cursos:
         nivel -- nível acadêmico do curso: graduacao ou posgraduacao.
                  (default graduacao)
         verbose -- indicação dos procedimentos sendo adotados
+
+        No caso de disciplinas de cadeias seletivas, o resultado é uma lista em
+        que cada item tem uma relação 'OU' com os demais, e cada item é um
+        dicionário cujos itens têm uma relação 'E' entre si. Por exemplo:
+        o resultado da busca por 6912 (Engenharia Mecatrônica) tem como uma das
+        cadeias resultantes (a cadeia '2'), a seguinte lista:
+        [{'114014': 'QUIMICA GERAL'}, {'114634': 'QUI GERAL EXPERIMENTAL',
+                                       '114626': 'QUIMICA GERAL TEORICA'}]
+
+        que deve ser interpretado como
+        114014 OU (114626 E 114634)
+
+        Ou seja, para graduação na habilitação 6912, é preciso ter sido
+        aprovado na disciplina QUIMICA GERAL ou ter sido aprovado nas
+        disciplinas QUI GERAL EXPERIMENTAL e QUIMICA GERAL TEORICA.
         '''
 
-        OBR_OPT = 'DISCIPLINAS OBRIGATÓRIAS (.*?)</table></td>.*?' \
+        OBR_OPT = 'DISCIPLINAS OBRIGATÓRIAS (.*?)</table></td>(.*?)' \
                   'DISCIPLINAS OPTATIVAS (.*?)</table></td>'
-        DISCIPLINA = 'disciplina.aspx\?cod=(\d+)>.*?</b> - (.*?)</a>'
+        CADEIAS = 'CADEIA: (\d+)(.*?)</table>'
+        DISCIPLINA = 'disciplina.aspx\?cod=(\d+)>.*?</b> - (.*?)</a></td>' \
+                     '<td><b>(.*?)</b></td>'
 
-        disciplinas = {}
+        disciplinas = {'obrigatórias': {}, 'cadeias': {}, 'optativas': {}}
         try:
             if verbose:
                 log('Buscando currículo do curso ' + str(codigo))
             pagina_html = mweb(nivel, 'curriculo', codigo)
             obr_e_opts = busca(OBR_OPT, pagina_html)
-            for obrigatorias, optativas in obr_e_opts:
+
+            for obrigatorias, cadeias, optativas in obr_e_opts:
                 disciplinas['obrigatórias'] = {}
-                for cod, disc in busca(DISCIPLINA, obrigatorias):
-                    disciplinas['obrigatórias'][cod] = disc.strip()
-                disciplinas['optativas'] = {}
-                for cod, disc in busca(DISCIPLINA, optativas):
-                    disciplinas['optativas'][cod] = disc.strip()
+                for cod, nome, e_ou in busca(DISCIPLINA, obrigatorias):
+                    disciplinas['obrigatórias'][cod] = nome.strip()
+
+                for ciclo, discs in busca(CADEIAS, cadeias):
+                    disciplinas['cadeias'][ciclo] = []
+                    current = {}
+                    for cod, nome, e_ou in busca(DISCIPLINA, discs):
+                        current[cod] = nome.strip()
+                        if e_ou.strip() != 'E':
+                            disciplinas['cadeias'][ciclo].append(current)
+                            current = {}
+
+                for cod, nome, e_ou in busca(DISCIPLINA, optativas):
+                    disciplinas['optativas'][cod] = nome.strip()
         except RequestException:
             pass
             # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
@@ -279,7 +306,7 @@ class Disciplina:
 
         Ou seja, para cursar a disciplina 116424, é preciso ter sido aprovado
         na disciplina 117251 (ARQ DE PROCESSADORES DIGITAIS) ou ter sido
-        aprovado nas disciplina 116394 (ORG ARQ DE COMPUTADORES) e 113042
+        aprovado nas disciplinas 116394 (ORG ARQ DE COMPUTADORES) e 113042
         (Cálculo 2).
         '''
         DISCIPLINAS = '<td valign=top><b>Pré-req:</b> </td>' \

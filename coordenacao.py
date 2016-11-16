@@ -4,37 +4,37 @@
 #
 # Funções úteis para coordenação.
 
-from mwebcrawler import Campus, Cursos, Disciplina, Nivel
+from mwebcrawler import Campus, Cursos, Disciplina, Nivel, Oferta
 
 
-def alunos_matriculados(codigo, nivel=Nivel.GRADUACAO, verbose=False):
+def alunos_matriculados(disciplina, nivel=Nivel.GRADUACAO, verbose=False):
     '''Retorna o total de alunos matriculados em todas as turmas da disciplina
     do código dado.
 
     Argumentos:
-    codigo -- o código da disciplina
+    disciplina -- o código da disciplina
     nivel -- nível acadêmico das disciplinas buscadas: graduacao ou
              posgraduacao
              (default graduacao).
     verbose -- indicação dos procedimentos sendo adotados
     '''
-    disciplinas = Oferta.turmas(codigo, nivel, verbose=verbose)
+    disciplinas = Oferta.turmas(disciplina, nivel, verbose=verbose)
 
     return sum([disciplinas[t]['Alunos Matriculados'] for t in disciplinas])
 
 
-def demanda_nao_atendida(codigo, nivel=Nivel.GRADUACAO, verbose=False):
+def demanda_nao_atendida(disciplina, nivel=Nivel.GRADUACAO, verbose=False):
     '''Retorna o total de alunos inscritos na lista de espera da disciplina do
     código dado. Considera todas as turmas.
 
     Argumentos:
-    codigo -- o código da disciplina
+    disciplina -- o código da disciplina
     nivel -- nível acadêmico das disciplinas buscadas: graduacao ou
              posgraduacao
              (default graduacao).
     verbose -- indicação dos procedimentos sendo adotados
     '''
-    lista = Oferta.lista_de_espera(codigo, nivel=nivel, verbose=verbose)
+    lista = Oferta.lista_de_espera(disciplina, nivel=nivel, verbose=verbose)
     return sum(lista.values())
 
 
@@ -100,45 +100,42 @@ def ocupacao_minima(oferta, cursos, quorum, nivel=Nivel.GRADUACAO,
     return obrigatorias, optativas
 
 
-def lista_obrigatorias(cursos, deptos, nivel=Nivel.GRADUACAO,
+def lista_obrigatorias(habilitacoes, deptos, nivel=Nivel.GRADUACAO,
                        campus=Campus.DARCY_RIBEIRO, verbose=False):
     '''Retorna, para cada curso dado, um dicionário contendo as disciplinas
     consideradas obrigatórias: as listadas como tal no currículo e as listadas
     como cadeias/ciclos).
 
     Argumentos:
-    cursos -- coleção de códigos de cursos com disciplinas (da oferta) em seus
-              currículos
+    habilitacoes -- coleção de códigos de habilitações com disciplinas (da
+                    oferta) em seus currículos
     deptos -- coleção de siglas de departamentos da UnB para os quais se deseja
               identificar as disciplinas obrigatórias
     nivel -- nível acadêmico das disciplinas buscadas: graduacao ou
              posgraduacao
              (default graduacao).
-    campus -- o campus onde o curso é oferecido: DARCY_RIBEIRO, PLANALTINA,
-              CEILANDIA ou GAMA
+    campus -- o campus onde a habilitação é oferecida: DARCY_RIBEIRO,
+              PLANALTINA, CEILANDIA ou GAMA
               (default DARCY_RIBEIRO)
     verbose -- indicação dos procedimentos sendo adotados
     '''
     lista = {}
-    for curso in cursos:
-        lista[curso] = {}
-
-        habilitacoes = Cursos.habilitacoes(curso, nivel, campus, verbose)
-        for opcao in habilitacoes:
-            curriculo = Cursos.curriculo(opcao, nivel, verbose)
-            obrigatorias = curriculo.get('obrigatórias')
-            for ciclo in curriculo.get('cadeias'):
-                for item in curriculo['cadeias'][ciclo]:
-                    obrigatorias.update(item)
-            if obrigatorias:
-                for disciplina in obrigatorias:
-                    infos = Disciplina.informacoes(disciplina, nivel, verbose)
-                    depto = infos.get('Sigla do Departamento')
-                    if depto in deptos:
-                        if depto not in lista[curso]:
-                            lista[curso][depto] = {}
-                        lista[curso][depto][disciplina] = infos['Denominação']
+    for opcao in habilitacoes:
+        lista[opcao] = {}
+        curriculo = Cursos.curriculo(opcao, nivel, verbose)
+        obrigatorias = curriculo.get('obrigatórias')
+        for ciclo in curriculo.get('cadeias'):
+            for item in curriculo['cadeias'][ciclo]:
+                obrigatorias.update(item)
+        for disciplina in obrigatorias:
+            infos = Disciplina.informacoes(disciplina, nivel, verbose)
+            depto = infos.get('Sigla do Departamento')
+            if depto in deptos:
+                if depto not in lista[opcao]:
+                    lista[opcao][depto] = {}
+                lista[opcao][depto][disciplina] = infos['Denominação']
     return lista
+
 
 if __name__ == '__main__':
     # import sys
@@ -179,11 +176,13 @@ if __name__ == '__main__':
     #         cod, t = codigo.split(' ')
     #         f.write(','.join([cod, oferta[cod], t, str(opt[codigo])]) + '\n')
 
-    # nivel = Nivel.GRADUACAO
-    # campus = Campus.DARCY_RIBEIRO
-    # verbose = False
-    # cursos = [949] # Cursos.relacao(nivel, campus, verbose)
-    # deptos = ['CIC', 'ENE', ENM']
-    # lista = lista_obrigatorias(cursos, deptos, nivel, campus, verbose)
-    # print lista
+    nivel = Nivel.GRADUACAO
+    campus = Campus.DARCY_RIBEIRO
+    verbose = False
+    cursos = Cursos.relacao(nivel, campus, verbose)
+    habilitacoes = [h for curso in cursos for h in Cursos.habilitacoes(curso).keys()]
+    # habilitacoes = [6912]  # Eng. Mecatrônica
+    deptos = ['CIC']  # , 'ENE', 'ENM']
+    lista = lista_obrigatorias(habilitacoes, deptos, nivel, campus, verbose)
+    print lista
     pass

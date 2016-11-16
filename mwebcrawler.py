@@ -44,12 +44,12 @@ class Cursos:
     '''Métodos de busca associados a informações de cursos.'''
 
     @staticmethod
-    def curriculo(codigo, nivel=Nivel.GRADUACAO, verbose=False):
+    def curriculo(curso, nivel=Nivel.GRADUACAO, verbose=False):
         '''Acessa o Matrícula Web e retorna um dicionário com a lista de
         disciplinas definidas no currículo do curso.
 
         Argumentos:
-        codigo -- o código do curso.
+        curso -- o código do curso.
         nivel -- nível acadêmico do curso: graduacao ou posgraduacao.
                  (default graduacao)
         verbose -- indicação dos procedimentos sendo adotados
@@ -79,8 +79,8 @@ class Cursos:
         disciplinas = {'obrigatórias': {}, 'cadeias': {}, 'optativas': {}}
         try:
             if verbose:
-                log('Buscando currículo do curso ' + str(codigo))
-            pagina_html = mweb(nivel, 'curriculo', codigo)
+                log('Buscando currículo do curso ' + str(curso))
+            pagina_html = mweb(nivel, 'curriculo', curso)
             obr_e_opts = busca(OBR_OPT, pagina_html)
 
             for obrigatorias, cadeias, optativas in obr_e_opts:
@@ -99,19 +99,19 @@ class Cursos:
 
                 for cod, nome, e_ou in busca(DISCIPLINA, optativas):
                     disciplinas['optativas'][cod] = nome.strip()
-        except RequestException:
+        except RequestException:  # as erro:
             pass
-            # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
+            # print 'Erro ao buscar %s para %s.\n%s' % (curso, nivel, erro)
 
         return disciplinas
 
     @staticmethod
-    def fluxo(opcao, nivel=Nivel.GRADUACAO, verbose=False):
+    def fluxo(habilitacao, nivel=Nivel.GRADUACAO, verbose=False):
         '''Acessa o Matrícula Web e retorna um dicionário com a lista de
-        disciplinas por período definidas no fluxo do curso.
+        disciplinas por período definidas no fluxo da habilitação.
 
         Argumentos:
-        opcao -- o código da habilitação do curso.
+        habilitacao -- o código da habilitação do curso.
         nivel -- nível acadêmico do curso: graduacao ou posgraduacao.
                  (default graduacao)
         verbose -- indicação dos procedimentos sendo adotados
@@ -120,22 +120,24 @@ class Cursos:
                   '(.*?)</tr></table>'
         DISCIPLINA = 'disciplina.aspx\?cod=\d+>(\d+)</a>'
 
-        curso = {}
+        disciplinas = {}
         try:
             if verbose:
-                log('Buscando disciplinas no fluxo do curso ' + str(opcao))
-            pagina_html = mweb(nivel, 'fluxo', opcao)
+                log('Buscando disciplinas no fluxo da habilitação ' +
+                    str(habilitacao))
+            pagina_html = mweb(nivel, 'fluxo', habilitacao)
             oferta = busca(PERIODO, pagina_html)
             for periodo, creditos, dados in oferta:
                 periodo = int(periodo)
-                curso[periodo] = {}
-                curso[periodo]['Créditos'] = creditos
-                curso[periodo]['Disciplinas'] = busca(DISCIPLINA, dados)
-        except RequestException:
+                disciplinas[periodo] = {}
+                disciplinas[periodo]['Créditos'] = creditos
+                disciplinas[periodo]['Disciplinas'] = busca(DISCIPLINA, dados)
+        except RequestException:  # as erro:
             pass
-            # print 'Erro ao buscar %s para %s.\n%s' % (opcao, nivel, erro)
+            # print 'Erro ao buscar %s para %s.\n%s' %
+            #       (habilitacao, nivel, erro)
 
-        return curso
+        return disciplinas
 
     @staticmethod
     def habilitacoes(curso, nivel=Nivel.GRADUACAO,
@@ -172,22 +174,22 @@ class Cursos:
                 log('Buscando informações da habilitação do curso ' +
                     str(curso))
             pagina_html = mweb(nivel, 'curso_dados', curso)
-            opcoes = busca(OPCAO, pagina_html)
-            for (opcao, nome, grau, l_min, l_max,
-                 formatura, obr, opt, livre) in opcoes:
-                dados[opcao] = {}
-                dados[opcao]['Nome'] = nome
-                dados[opcao]['Grau'] = grau
-                dados[opcao]['Limite mínimo de permanência'] = l_min
-                dados[opcao]['Limite máximo de permanência'] = l_max
-                dados[opcao]['Créditos para Formatura'] = formatura
-                dados[opcao]['Mínimo de Créditos Optativos na '
-                             'Área de Concentração'] = obr
-                dados[opcao]['Quantidade mínima de Créditos Optativos na '
-                             'Área Conexa'] = opt
-                dados[opcao]['Quantidade máxima de Créditos no '
-                             'Módulo Livre'] = livre
-        except RequestException:
+            habilitacoes = busca(OPCAO, pagina_html)
+            for (habilitacao, nome, grau, l_min, l_max,
+                 formatura, obr, opt, livre) in habilitacoes:
+                dados[habilitacao] = {}
+                dados[habilitacao]['Nome'] = nome
+                dados[habilitacao]['Grau'] = grau
+                dados[habilitacao]['Limite mínimo de permanência'] = l_min
+                dados[habilitacao]['Limite máximo de permanência'] = l_max
+                dados[habilitacao]['Créditos para Formatura'] = formatura
+                dados[habilitacao]['Mínimo de Créditos Optativos na '
+                                   'Área de Concentração'] = obr
+                dados[habilitacao]['Quantidade mínima de Créditos Optativos '
+                                   'na Área Conexa'] = opt
+                dados[habilitacao]['Quantidade máxima de Créditos no '
+                                   'Módulo Livre'] = livre
+        except RequestException:  # as erro:
             pass
             # print 'Erro ao buscar %s para %s.\n%s' % (curso, nivel, erro)
 
@@ -226,7 +228,7 @@ class Cursos:
                 lista[codigo]['Modalidade'] = modalidade
                 lista[codigo]['Denominação'] = denominacao
                 lista[codigo]['Turno'] = turno
-        except RequestException:
+        except RequestException:  # as erro:
             pass
             # print 'Erro ao buscar relação de cursos para %s em %d.\n%s' %
             #     (nivel, campus, erro)
@@ -238,12 +240,12 @@ class Disciplina:
     '''Métodos de busca associados a informações de disciplinas.'''
 
     @staticmethod
-    def informacoes(codigo, nivel=Nivel.GRADUACAO, verbose=False):
+    def informacoes(disciplina, nivel=Nivel.GRADUACAO, verbose=False):
         '''Acessa o Matrícula Web e retorna um dicionário com as informações da
         disciplina.
 
         Argumentos:
-        codigo -- o código da disciplina.
+        disciplina -- o código da disciplina.
         nivel -- nível acadêmico da disciplina: graduacao ou posgraduacao.
                  (default graduacao)
         verbose -- indicação dos procedimentos sendo adotados
@@ -264,35 +266,36 @@ class Disciplina:
         infos = {}
         try:
             if verbose:
-                log('Buscando informações da disciplina ' + str(codigo))
-            pagina_html = mweb(nivel, 'disciplina', codigo)
+                log('Buscando informações da disciplina ' + str(disciplina))
+            pagina_html = mweb(nivel, 'disciplina', disciplina)
             informacoes = busca(DISCIPLINAS, pagina_html)
             for (sigla, nome, denominacao, nivel, vigencia,
                  pre_req, ementa, programa, bibliografia) in informacoes:
                 infos['Sigla do Departamento'] = sigla
                 infos['Nome do Departamento'] = nome
                 infos['Denominação'] = denominacao
-                infos['Nivel'] = nivel
+                infos['Nível'] = nivel
                 infos['Vigência'] = vigencia
                 infos['Pré-requisitos'] = pre_req.replace('<br>', ' ')
                 infos['Ementa'] = ementa.replace('<br />', '\n')
                 if programa:
                     infos['Programa'] = programa.replace('<br />', '\n')
                 infos['Bibliografia'] = bibliografia.replace('<br />', '\n')
-        except RequestException:
+        except RequestException:  # as erro
             pass
-            # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
+            # print 'Erro ao buscar %s para %s.\n%s' %
+            #       (disciplina, nivel, erro)
 
         return infos
 
     @staticmethod
-    def pre_requisitos(codigo, nivel=Nivel.GRADUACAO, verbose=False):
+    def pre_requisitos(disciplina, nivel=Nivel.GRADUACAO, verbose=False):
         '''Dado o código de uma disciplina, acessa o Matrícula Web e retorna
         uma lista com os códigos das disciplinas que são pré-requisitos para a
         dada.
 
         Argumentos:
-        codigo -- o código da disciplina.
+        disciplina -- o código da disciplina.
         nivel -- nível acadêmico da disciplina: graduacao ou posgraduacao.
                  (default graduacao)
         verbose -- indicação dos procedimentos sendo adotados
@@ -317,15 +320,16 @@ class Disciplina:
         try:
             if verbose:
                 log('Buscando a lista de pré-requisitos para a disciplina ' +
-                    str(codigo))
-            pagina_html = mweb(nivel, 'disciplina_pop', codigo)
+                    str(disciplina))
+            pagina_html = mweb(nivel, 'disciplina_pop', disciplina)
             requisitos = busca(DISCIPLINAS, pagina_html)
             for requisito in requisitos:
                 for disciplinas in requisito.split(' OU<br>'):
                     pre_req.append(busca(CODIGO, disciplinas))
-        except RequestException:
+        except RequestException:  # as erro:
             pass
-            # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
+            # print 'Erro ao buscar %s para %s.\n%s' %
+            #       (disciplina, nivel, erro)
 
         return filter(None, pre_req)
 
@@ -345,9 +349,6 @@ class Oferta:
                   CEILANDIA ou GAMA
                   (default DARCY_RIBEIRO)
         verbose -- indicação dos procedimentos sendo adotados
-
-
-        O argumento 'codigo' deve ser uma expressão regular.
         '''
         DEPARTAMENTOS = '<tr CLASS=PadraoMenor bgcolor=.*?>'\
                         '<td>\d+</td><td>(\w+)</td>' \
@@ -365,18 +366,17 @@ class Oferta:
                 deptos[codigo]['Denominação'] = denominacao
         except RequestException:
             pass
-            # print 'Erro ao buscar %s para %s em %d.\n%s' %
-            #     (codigo, nivel, campus, erro)
+            # print 'Erro ao buscar %s em %d.\n%s' % (nivel, campus, erro)
 
         return deptos
 
     @staticmethod
-    def disciplinas(dept, nivel=Nivel.GRADUACAO, verbose=False):
+    def disciplinas(departamento, nivel=Nivel.GRADUACAO, verbose=False):
         '''Acessa o Matrícula Web e retorna um dicionário com a lista de
         disciplinas ofertadas por um departamento.
 
         Argumentos:
-        dept -- o código do Departamento que oferece as disciplinas
+        departamento -- o código do Departamento que oferece as disciplinas
         nivel -- nível acadêmico das disciplinas buscadas: graduacao ou
                  posgraduacao.
                  (default graduacao)
@@ -391,25 +391,26 @@ class Oferta:
         try:
             if verbose:
                 log('Buscando a informações de disciplinas do departamento ' +
-                    str(dept))
-            pagina_html = mweb(nivel, 'oferta_dis', dept)
+                    str(departamento))
+            pagina_html = mweb(nivel, 'oferta_dis', departamento)
             ofertadas = busca(DISCIPLINAS, pagina_html)
             for codigo, nome in ofertadas:
                 oferta[codigo] = nome
         except RequestException:
             pass
-            # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
+            # print 'Erro ao buscar %s para %s.\n%s' %
+            #       (departamento, nivel, erro)
 
         return oferta
 
     @staticmethod
-    def lista_de_espera(codigo, turma='\w+', nivel=Nivel.GRADUACAO,
+    def lista_de_espera(disciplina, turma='\w+', nivel=Nivel.GRADUACAO,
                         verbose=False):
         '''Dado o código de uma disciplina, acessa o Matrícula Web e retorna um
         dicionário com a lista de espera para turmas ofertadas da disciplina.
 
         Argumentos:
-        codigo -- o código da disciplina
+        disciplina -- o código da disciplina
         turma -- identificador da turma
                  (default '\w+') (todas as disciplinas)
         nivel -- nível acadêmico da disciplina buscada: graduacao ou
@@ -430,27 +431,28 @@ class Oferta:
         try:
             if verbose:
                 log('Buscando turmas com lista de espera para a disciplina ' +
-                    str(codigo))
-            pagina_html = mweb(nivel, 'faltavaga_rel', codigo)
+                    str(disciplina))
+            pagina_html = mweb(nivel, 'faltavaga_rel', disciplina)
             turmas_com_demanda = busca(TABELA, pagina_html)
             for tabela in turmas_com_demanda:
                 for turma, vagas_desejadas in busca(TURMAS, tabela):
                     vagas = int(vagas_desejadas)
                     if vagas > 0:
                         demanda[turma] = vagas
-        except RequestException:
+        except RequestException:  # as erro:
             pass
-            # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
+            # print 'Erro ao buscar %s para %s.\n%s' %
+            #       (disciplina, nivel, erro)
 
         return demanda
 
     @staticmethod
-    def turmas(codigo, nivel=Nivel.GRADUACAO, verbose=False):
+    def turmas(disciplina, nivel=Nivel.GRADUACAO, verbose=False):
         '''Dado o código de uma disciplina, acessa o Matrícula Web e retorna um
         dicionário com a lista de turmas ofertadas para uma disciplina.
 
         Argumentos:
-        codigo -- o código da disciplina.
+        disciplina -- o código da disciplina.
         nivel -- nível acadêmico da disciplina: graduacao ou posgraduacao.
                  (default graduacao)
         verbose -- indicação dos procedimentos sendo adotados
@@ -468,8 +470,8 @@ class Oferta:
         oferta = {}
         try:
             if verbose:
-                log('Buscando as turmas da disciplina ' + str(codigo))
-            pagina_html = mweb(nivel, 'oferta_dados', codigo)
+                log('Buscando as turmas da disciplina ' + str(disciplina))
+            pagina_html = mweb(nivel, 'oferta_dados', disciplina)
             turmas_ofertadas = busca(TURMAS, pagina_html)
             for turma, ocupadas, professores, aux, reserva in turmas_ofertadas:
                 oferta[turma] = {}
@@ -477,9 +479,10 @@ class Oferta:
                 oferta[turma]['Professores'] = professores.split('<br>')
                 if reserva:
                     oferta[turma]['Turma Reservada'] = reserva
-        except RequestException:
+        except RequestException:  # as erro:
             pass
-            # print 'Erro ao buscar %s para %s.\n%s' % (codigo, nivel, erro)
+            # print 'Erro ao buscar %s para %s.\n%s'
+            #       % (disciplina, nivel, erro)
 
         return oferta
 
@@ -487,48 +490,3 @@ class Oferta:
 def log(msg):
     '''Log de mensagens.'''
     print msg
-
-
-if __name__ == '__main__':
-    # curriculo = Cursos.curriculo(1856)
-    # for disciplina in sorted(curriculo):
-    #     print disciplina, curriculo[disciplina]
-
-    # periodos = Cursos.fluxo(6912)  # 1856)
-    # for p in sorted(periodos):
-    #     print "Período ", p, periodos[p]
-
-    # habilitacoes = Cursos.habilitacoes(370)
-    # for k, v in habilitacoes.items():
-    #     print k, v
-
-    # cursos = Cursos.relacao()
-    # for k, v in cursos.items():
-    #     print k, v
-
-    # informacoes = Disciplina.informacoes(113476)
-    # informacoes = Disciplina.informacoes(114626)
-    # for k, v in informacoes.items():
-    #     print k, v, '\n'
-
-    # # pre_requisitos = Disciplina.pre_requisitos(113476)
-    # pre_requisitos = Disciplina.pre_requisitos(116319)
-    # print pre_requisitos
-
-    # departamentos = Oferta.departamentos()
-    # for k, v in departamentos.items():
-    #     print k, v
-
-    # disciplinas = Oferta.disciplinas(116)
-    # for k, v in disciplinas.items():
-    #     print k, v
-
-    # l_espera = Oferta.lista_de_espera(113476)
-    # for turma in l_espera:
-    #     print turma, l_espera[turma]
-
-    # turmas = Oferta.turmas(113476)
-    # for k, v in turmas.items():
-    #     print k, v
-
-    pass

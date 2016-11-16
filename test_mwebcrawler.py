@@ -40,7 +40,7 @@ class TestCursos(unittest.TestCase):
             self.assertIn(p, fluxo)
 
         self.assertIn('Créditos', fluxo[8])
-        self.assertEquals('16', fluxo[8]['Créditos'])
+        self.assertEqual('16', fluxo[8]['Créditos'])
 
         self.assertIn('Disciplinas', fluxo[8])
         for d in ['168921', '184802', '207438']:
@@ -52,21 +52,21 @@ class TestCursos(unittest.TestCase):
 
         self.assertIn('6912', habilitacoes)
         self.assertIn('Nome', habilitacoes['6912'])
-        self.assertEquals('Engenharia de Controle e Automação', habilitacoes['6912']['Nome'])
+        self.assertEqual('Engenharia de Controle e Automação', habilitacoes['6912']['Nome'])
         self.assertIn('Grau', habilitacoes['6912'])
-        self.assertEquals('Engenheiro de Controle e Automação', habilitacoes['6912']['Grau'])
+        self.assertEqual('Engenheiro de Controle e Automação', habilitacoes['6912']['Grau'])
         self.assertIn('Limite mínimo de permanência', habilitacoes['6912'])
-        self.assertEquals('8', habilitacoes['6912']['Limite mínimo de permanência'])
+        self.assertEqual('8', habilitacoes['6912']['Limite mínimo de permanência'])
         self.assertIn('Limite máximo de permanência', habilitacoes['6912'])
-        self.assertEquals('18', habilitacoes['6912']['Limite máximo de permanência'])
+        self.assertEqual('18', habilitacoes['6912']['Limite máximo de permanência'])
         self.assertIn('Créditos para Formatura', habilitacoes['6912'])
-        self.assertEquals('274', habilitacoes['6912']['Créditos para Formatura'])
+        self.assertEqual('274', habilitacoes['6912']['Créditos para Formatura'])
         self.assertIn('Mínimo de Créditos Optativos na Área de Concentração', habilitacoes['6912'])
-        self.assertEquals('0', habilitacoes['6912']['Mínimo de Créditos Optativos na Área de Concentração'])
+        self.assertEqual('0', habilitacoes['6912']['Mínimo de Créditos Optativos na Área de Concentração'])
         self.assertIn('Quantidade mínima de Créditos Optativos na Área Conexa', habilitacoes['6912'])
-        self.assertEquals('0', habilitacoes['6912']['Quantidade mínima de Créditos Optativos na Área Conexa'])
+        self.assertEqual('0', habilitacoes['6912']['Quantidade mínima de Créditos Optativos na Área Conexa'])
         self.assertIn('Quantidade máxima de Créditos no Módulo Livre', habilitacoes['6912'])
-        self.assertEquals('24', habilitacoes['6912']['Quantidade máxima de Créditos no Módulo Livre'])
+        self.assertEqual('24', habilitacoes['6912']['Quantidade máxima de Créditos no Módulo Livre'])
 
     def test_relacao(self):
         cursos = Cursos.relacao(nivel=Nivel.GRADUACAO, campus=Campus.DARCY_RIBEIRO, verbose=False)
@@ -82,16 +82,16 @@ class TestDisciplina(unittest.TestCase):
         informacoes = Disciplina.informacoes(codigo, nivel=Nivel.GRADUACAO, verbose=False)
 
         self.assertIn('Sigla do Departamento', informacoes)
-        self.assertEquals('CIC', informacoes['Sigla do Departamento'])
+        self.assertEqual('CIC', informacoes['Sigla do Departamento'])
         self.assertIn('Nome do Departamento', informacoes)
-        self.assertEquals('Departamento de Ciência da Computação',
+        self.assertEqual('Departamento de Ciência da Computação',
                           informacoes['Nome do Departamento'])
         self.assertIn('Denominação', informacoes)
-        self.assertEquals('ESTRUTURAS DE DADOS', informacoes['Denominação'])
+        self.assertEqual('ESTRUTURAS DE DADOS', informacoes['Denominação'])
         self.assertIn('Nível', informacoes)
-        self.assertEquals('Graduação', informacoes['Nível'])
+        self.assertEqual('Graduação', informacoes['Nível'])
         self.assertIn('Vigência', informacoes)
-        self.assertEquals('1971/2', informacoes['Vigência'])
+        self.assertEqual('1971/2', informacoes['Vigência'])
         self.assertIn('Pré-requisitos', informacoes)
         self.assertIn('116301', informacoes['Pré-requisitos'])
         self.assertIn('Ementa', informacoes)
@@ -105,7 +105,7 @@ class TestDisciplina(unittest.TestCase):
         codigo = 116424  # Transmissão de Dados
 
         pre_reqs = Disciplina.pre_requisitos(codigo, nivel=Nivel.GRADUACAO, verbose=False)
-        self.assertEquals([['117251'], ['116394', '113042']], pre_reqs)
+        self.assertEqual([['117251'], ['116394', '113042']], pre_reqs)
 
 
 class TestOferta(unittest.TestCase):
@@ -117,9 +117,9 @@ class TestOferta(unittest.TestCase):
             self.assertIn(depto, deptos)
 
         self.assertIn('Denominação', deptos['351'])
-        self.assertEquals('Centro Apoio ao Desenvolvimento Tecnológico', deptos['351']['Denominação'])
+        self.assertEqual('Centro Apoio ao Desenvolvimento Tecnológico', deptos['351']['Denominação'])
         self.assertIn('Sigla', deptos['351'])
-        self.assertEquals('CDT', deptos['351']['Sigla'])
+        self.assertEqual('CDT', deptos['351']['Sigla'])
 
         # Campi
         for depto in ['638', '650', '660']:
@@ -129,7 +129,7 @@ class TestOferta(unittest.TestCase):
         disciplinas = Oferta.disciplinas(116, nivel=Nivel.GRADUACAO, verbose=False)
 
         self.assertIn('116394', disciplinas)
-        self.assertEquals('ORGANIZACAO E ARQUITETURA DE COMPUTADORES', disciplinas['116394'])
+        self.assertEqual('ORGANIZACAO E ARQUITETURA DE COMPUTADORES', disciplinas['116394'])
 
     def test_lista_de_espera(self):
         codigo = 113476  # Algoritmos e Programação de Computadores

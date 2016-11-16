@@ -23,7 +23,7 @@ def mweb(nivel, pagina, cod):
     escopo = 'matriculaweb.unb.br/%s' % nivel
     pagina = '%s.aspx?cod=%s' % (pagina, cod)
     html = requests.get('https://%s/%s' % (escopo, pagina))
-    return html.content
+    return html.content.decode('utf-8')
 
 
 class Nivel:
@@ -331,7 +331,7 @@ class Disciplina:
             # print 'Erro ao buscar %s para %s.\n%s' %
             #       (disciplina, nivel, erro)
 
-        return filter(None, pre_req)
+        return [cod_disc for cod_disc in pre_req if cod_disc]
 
 
 class Oferta:
@@ -489,4 +489,4 @@ class Oferta:
 
 def log(msg):
     '''Log de mensagens.'''
-    print msg
+    print(msg)

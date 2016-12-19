@@ -1,6 +1,6 @@
 #  -*- coding: utf-8 -*-
-##    @package test_mwebcrawler.py
-#      @author Guilherme N. Ramos (gnramos@unb.br)
+#    @package: test_mwebcrawler.py
+#     @author: Guilherme N. Ramos (gnramos@unb.br)
 #
 # Funções de teste do MWebCrawler. Por vezes o MatriculaWeb "não funciona",
 # fazendo com que o(s) teste(s ) falhe(m). Nestes casos, o ideal é  esperar
@@ -19,7 +19,8 @@ import unittest
 class TestCursos(unittest.TestCase):
     def test_curriculo(self):
         opcao = '6912'  # Mecatrônica
-        disciplinas = Cursos.curriculo(opcao, nivel=Nivel.GRADUACAO, verbose=False)
+        disciplinas = Cursos.curriculo(opcao, nivel=Nivel.GRADUACAO,
+                                       verbose=False)
 
         self.assertIn('obrigatórias', disciplinas)
         self.assertIn('116319', disciplinas['obrigatórias'])
@@ -27,7 +28,8 @@ class TestCursos(unittest.TestCase):
         self.assertIn('cadeias', disciplinas)
         self.assertIn('6', disciplinas['cadeias'])
         for item in disciplinas['cadeias']['6']:
-            self.assertTrue(('167011' in item) or ('111830' in item and '111848' in item))
+            self.assertTrue(('167011' in item) or
+                            ('111830' in item and '111848' in item))
 
         self.assertIn('optativas', disciplinas)
         self.assertIn('113417', disciplinas['optativas'])
@@ -48,44 +50,61 @@ class TestCursos(unittest.TestCase):
 
     def test_habilitacoes(self):
         curso = 949  # Eng. Mecatrônica
-        habilitacoes = Cursos.habilitacoes(curso, nivel=Nivel.GRADUACAO, campus=Campus.DARCY_RIBEIRO, verbose=False)
+        habilitacoes = Cursos.habilitacoes(curso, nivel=Nivel.GRADUACAO,
+                                           campus=Campus.DARCY_RIBEIRO,
+                                           verbose=False)
 
         self.assertIn('6912', habilitacoes)
-        self.assertIn('Nome', habilitacoes['6912'])
-        self.assertEqual('Engenharia de Controle e Automação', habilitacoes['6912']['Nome'])
-        self.assertIn('Grau', habilitacoes['6912'])
-        self.assertEqual('Engenheiro de Controle e Automação', habilitacoes['6912']['Grau'])
-        self.assertIn('Limite mínimo de permanência', habilitacoes['6912'])
-        self.assertEqual('8', habilitacoes['6912']['Limite mínimo de permanência'])
-        self.assertIn('Limite máximo de permanência', habilitacoes['6912'])
-        self.assertEqual('18', habilitacoes['6912']['Limite máximo de permanência'])
-        self.assertIn('Créditos para Formatura', habilitacoes['6912'])
-        self.assertEqual('274', habilitacoes['6912']['Créditos para Formatura'])
-        self.assertIn('Mínimo de Créditos Optativos na Área de Concentração', habilitacoes['6912'])
-        self.assertEqual('0', habilitacoes['6912']['Mínimo de Créditos Optativos na Área de Concentração'])
-        self.assertIn('Quantidade mínima de Créditos Optativos na Área Conexa', habilitacoes['6912'])
-        self.assertEqual('0', habilitacoes['6912']['Quantidade mínima de Créditos Optativos na Área Conexa'])
-        self.assertIn('Quantidade máxima de Créditos no Módulo Livre', habilitacoes['6912'])
-        self.assertEqual('24', habilitacoes['6912']['Quantidade máxima de Créditos no Módulo Livre'])
+        habilitacao = habilitacoes['6912']
+        self.assertIn('Nome', habilitacao)
+        self.assertEqual('Engenharia de Controle e Automação',
+                         habilitacao['Nome'])
+        self.assertIn('Grau', habilitacao)
+        self.assertEqual('Engenheiro de Controle e Automação',
+                         habilitacao['Grau'])
+        self.assertIn('Limite mínimo de permanência', habilitacao)
+        self.assertEqual('8',
+                         habilitacao['Limite mínimo de permanência'])
+        self.assertIn('Limite máximo de permanência', habilitacao)
+        self.assertEqual('18',
+                         habilitacao['Limite máximo de permanência'])
+        self.assertIn('Créditos para Formatura', habilitacao)
+        self.assertEqual('274',
+                         habilitacao['Créditos para Formatura'])
+        self.assertIn('Mínimo de Créditos Optativos na Área de Concentração',
+                      habilitacao)
+        self.assertEqual('0', habilitacao['Mínimo de Créditos Optativos na '
+                                          'Área de Concentração'])
+        self.assertIn('Quantidade mínima de Créditos Optativos na Área Conexa',
+                      habilitacao)
+        self.assertEqual('0', habilitacao['Quantidade mínima de Créditos '
+                                          'Optativos na Área Conexa'])
+        self.assertIn('Quantidade máxima de Créditos no Módulo Livre',
+                      habilitacao)
+        self.assertEqual('24', habilitacao['Quantidade máxima de Créditos no '
+                                           'Módulo Livre'])
 
     def test_relacao(self):
-        cursos = Cursos.relacao(nivel=Nivel.GRADUACAO, campus=Campus.DARCY_RIBEIRO, verbose=False)
+        cursos = Cursos.relacao(nivel=Nivel.GRADUACAO,
+                                campus=Campus.DARCY_RIBEIRO, verbose=False)
 
         # Códigos selecionados aleatoriamente
-        for curso in ['19', '264', '1511', '230', '1414', '281', '451', '167', '1163', '299']:
+        for curso in ['19', '264', '1511', '230', '1414', '281', '451',
+                      '167', '1163', '299']:
             self.assertIn(curso, cursos)
 
 
 class TestDisciplina(unittest.TestCase):
     def test_informacoes(self):
         codigo = 116319  # Estruturas de Dados
-        informacoes = Disciplina.informacoes(codigo, nivel=Nivel.GRADUACAO, verbose=False)
+        informacoes = Disciplina.informacoes(codigo, nivel=Nivel.GRADUACAO,
+                                             verbose=False)
 
         self.assertIn('Sigla do Departamento', informacoes)
         self.assertEqual('CIC', informacoes['Sigla do Departamento'])
         self.assertIn('Nome do Departamento', informacoes)
         self.assertEqual('Departamento de Ciência da Computação',
-                          informacoes['Nome do Departamento'])
+                         informacoes['Nome do Departamento'])
         self.assertIn('Denominação', informacoes)
         self.assertEqual('ESTRUTURAS DE DADOS', informacoes['Denominação'])
         self.assertIn('Nível', informacoes)
@@ -104,20 +123,24 @@ class TestDisciplina(unittest.TestCase):
     def test_pre_requisitos(self):
         codigo = 116424  # Transmissão de Dados
 
-        pre_reqs = Disciplina.pre_requisitos(codigo, nivel=Nivel.GRADUACAO, verbose=False)
+        pre_reqs = Disciplina.pre_requisitos(codigo, nivel=Nivel.GRADUACAO,
+                                             verbose=False)
         self.assertEqual([['117251'], ['116394', '113042']], pre_reqs)
 
 
 class TestOferta(unittest.TestCase):
     def test_departamentos(self):
-        deptos = Oferta.departamentos(nivel=Nivel.GRADUACAO, campus=Campus.DARCY_RIBEIRO, verbose=False)
+        deptos = Oferta.departamentos(nivel=Nivel.GRADUACAO,
+                                      campus=Campus.DARCY_RIBEIRO,
+                                      verbose=False)
 
         # Códigos escolhidos aleatoriamente
         for depto in ['115', '138', '159', '351', '550']:
             self.assertIn(depto, deptos)
 
         self.assertIn('Denominação', deptos['351'])
-        self.assertEqual('Centro Apoio ao Desenvolvimento Tecnológico', deptos['351']['Denominação'])
+        self.assertEqual('Centro Apoio ao Desenvolvimento Tecnológico',
+                         deptos['351']['Denominação'])
         self.assertIn('Sigla', deptos['351'])
         self.assertEqual('CDT', deptos['351']['Sigla'])
 
@@ -126,19 +149,23 @@ class TestOferta(unittest.TestCase):
             self.assertIn(depto, deptos)
 
     def test_disciplinas(self):
-        disciplinas = Oferta.disciplinas(116, nivel=Nivel.GRADUACAO, verbose=False)
+        disciplinas = Oferta.disciplinas(116, nivel=Nivel.GRADUACAO,
+                                         verbose=False)
 
         self.assertIn('116394', disciplinas)
-        self.assertEqual('ORGANIZACAO E ARQUITETURA DE COMPUTADORES', disciplinas['116394'])
+        self.assertEqual('ORGANIZACAO E ARQUITETURA DE COMPUTADORES',
+                         disciplinas['116394'])
 
     def test_lista_de_espera(self):
         codigo = 113476  # Algoritmos e Programação de Computadores
-        le = Oferta.lista_de_espera(codigo, turma='A', nivel=Nivel.GRADUACAO, verbose=False)
+        le = Oferta.lista_de_espera(codigo, turma='A', nivel=Nivel.GRADUACAO,
+                                    verbose=False)
 
         self.assertIn('A', le)
         self.assertLessEqual(0, le['A'])
 
-        le = Oferta.lista_de_espera(codigo, nivel=Nivel.GRADUACAO, verbose=False)
+        le = Oferta.lista_de_espera(codigo, nivel=Nivel.GRADUACAO,
+                                    verbose=False)
         self.assertIn('A', le)
         self.assertLessEqual(0, le['A'])
 

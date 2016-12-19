@@ -1,6 +1,6 @@
 #  -*- coding: utf-8 -*-
-##    @package mwebcrawler.py
-#      @author Guilherme N. Ramos (gnramos@unb.br)
+#    @package: mwebcrawler.py
+#     @author: Guilherme N. Ramos (gnramos@unb.br)
 #
 # Funções de web-crawling para buscar informações de cursos da UnB. O programa
 # busca as informações com base em expressões regulares que, assume-se,

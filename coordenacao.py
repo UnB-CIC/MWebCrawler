@@ -1,5 +1,5 @@
 #  -*- coding: utf-8 -*-
-#       @file: coordenacao.py
+#    @package: coordenacao.py
 #     @author: Guilherme N. Ramos (gnramos@unb.br)
 #
 # Funções úteis para coordenação.
@@ -180,7 +180,7 @@ if __name__ == '__main__':
     campus = Campus.DARCY_RIBEIRO
     verbose = False
     cursos = Cursos.relacao(nivel, campus, verbose)
-    habilitacoes = [h for curso in cursos for h in Cursos.habilitacoes(curso).keys()]
+    habilitacoes = [h for curso in cursos for h in Cursos.habilitacoes(curso)]
     # habilitacoes = [6912]  # Eng. Mecatrônica
     deptos = ['CIC']  # , 'ENE', 'ENM']
     lista = lista_obrigatorias(habilitacoes, deptos, nivel, campus, verbose)

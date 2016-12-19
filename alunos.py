@@ -1,5 +1,5 @@
 #  -*- coding: utf-8 -*-
-#       @file: alunos.py
+#    @package: alunos.py
 #     @author: Guilherme N. Ramos (gnramos@unb.br)
 #
 # Funções úteis para alunos.
@@ -8,7 +8,8 @@
 from mwebcrawler import Disciplina, Nivel
 
 
-def pre_requisitos(codigo, nivel=Nivel.GRADUACAO, profundidade=0, verbose=False):
+def pre_requisitos(codigo, nivel=Nivel.GRADUACAO, profundidade=0,
+                   verbose=False):
     '''Dado o código de uma disciplina, obtém recursivamente a lista de
     disciplinas que são pré-requisitos para o código dado e as escreve na saída
     padrão, acrescentando um caractere de tabulação ao prefixo a cada nível de

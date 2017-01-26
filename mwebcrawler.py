@@ -23,7 +23,7 @@ def mweb(nivel, pagina, cod):
     escopo = 'matriculaweb.unb.br/%s' % nivel
     pagina = '%s.aspx?cod=%s' % (pagina, cod)
     html = requests.get('https://%s/%s' % (escopo, pagina))
-    return html.content.decode('utf-8')
+    return html.content
 
 
 class Nivel:
@@ -74,7 +74,8 @@ class Cursos:
                   'DISCIPLINAS OPTATIVAS (.*?)</table></td>'
         CADEIAS = 'CADEIA: (\d+)(.*?)</table>'
         DISCIPLINA = 'disciplina.aspx\?cod=(\d+)>.*?</b> - (.*?)</a></td>' \
-                     '<td><b>(.*?)</b></td>'
+                     '<td><b>(.*?)</b></td><td>(\d+) (\d+) (\d+) (\d+)</td>' \
+                     '<td>(.*?)</td></tr>'
 
         disciplinas = {'obrigatórias': {}, 'cadeias': {}, 'optativas': {}}
         try:
@@ -85,20 +86,35 @@ class Cursos:
 
             for obrigatorias, cadeias, optativas in obr_e_opts:
                 disciplinas['obrigatórias'] = {}
-                for cod, nome, e_ou in busca(DISCIPLINA, obrigatorias):
-                    disciplinas['obrigatórias'][cod] = nome.strip()
+                for (cod, nome, e_ou, teor,
+                     prat, ext, est, area) in busca(DISCIPLINA, obrigatorias):
+                    creditos = {'Teoria': int(teor), 'Prática': int(prat),
+                                'Extensão': int(ext), 'Estudo': int(est)}
+                    disciplinas['obrigatórias'][cod] = {'Nome': nome.strip(),
+                                                        'Créditos': creditos,
+                                                        'Área': area.strip()}
 
                 for ciclo, discs in busca(CADEIAS, cadeias):
                     disciplinas['cadeias'][ciclo] = []
                     current = {}
-                    for cod, nome, e_ou in busca(DISCIPLINA, discs):
-                        current[cod] = nome.strip()
+                    for (cod, nome, e_ou, teor,
+                         prat, ext, est, area) in busca(DISCIPLINA, discs):
+                        creditos = {'Teoria': int(teor), 'Prática': int(prat),
+                                    'Extensão': int(ext), 'Estudo': int(est)}
+                        current[cod] = {'Nome': nome.strip(),
+                                        'Créditos': creditos,
+                                        'Área': area.strip()}
                         if e_ou.strip() != 'E':
                             disciplinas['cadeias'][ciclo].append(current)
                             current = {}
 
-                for cod, nome, e_ou in busca(DISCIPLINA, optativas):
-                    disciplinas['optativas'][cod] = nome.strip()
+                for (cod, nome, e_ou, teor,
+                     prat, ext, est, area) in busca(DISCIPLINA, optativas):
+                    creditos = {'Teoria': int(teor), 'Prática': int(prat),
+                                'Extensão': int(ext), 'Estudo': int(est)}
+                    disciplinas['optativas'][cod] = {'Nome': nome.strip(),
+                                                     'Créditos': creditos,
+                                                     'Área': area.strip()}
         except RequestException:  # as erro:
             pass
             # print 'Erro ao buscar %s para %s.\n%s' % (curso, nivel, erro)
@@ -274,7 +290,7 @@ class Disciplina:
                 infos['Sigla do Departamento'] = sigla
                 infos['Nome do Departamento'] = nome
                 infos['Denominação'] = denominacao
-                infos['Nível'] = nivel
+                infos['Nível'] = nivel  # sobrescreve o argumento da função
                 infos['Vigência'] = vigencia
                 infos['Pré-requisitos'] = pre_req.replace('<br>', ' ')
                 infos['Ementa'] = ementa.replace('<br />', '\n')

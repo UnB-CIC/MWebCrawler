@@ -2,12 +2,18 @@
 #    @package: test_mwebcrawler.py
 #     @author: Guilherme N. Ramos (gnramos@unb.br)
 #
-# Funções de teste do MWebCrawler. Por vezes o MatriculaWeb "não funciona",
-# fazendo com que o(s) teste(s ) falhe(m). Nestes casos, o ideal é  esperar
-# um pouco e tentar executar os testes novamente.
+# Funções de teste do MWebCrawler.
 #
-# Por exemplo, a página de listagem de Departamentos com oferta de disciplinas:
-# https://matriculaweb.unb.br/graduacao/oferta_dep.aspx?cod=1
+# Observações:
+#
+# 1) Os testes da classe "Oferta" dependem das disciplinas sendo ofertadas no
+# momento! Por exemplo, o teste "test_turmas" só faz sentido se a disciplina
+# testada (116319) estiver sendo ofertada no momento da execução.
+#
+# 2) Por vezes o MatriculaWeb "não funciona", fazendo com que o(s) teste(s )
+# falhe(m). Nestes casos, o ideal é  esperar um pouco e tentar executar
+# novamente. Por exemplo, a página de listagem de Departamentos com oferta de
+# disciplinas: https://matriculaweb.unb.br/graduacao/oferta_dep.aspx?cod=1
 # não carrega completamente (?), faltando informações de oferta dos Campi. Isto
 # implica em falha de TestOferta.test_departamentos.
 
@@ -23,7 +29,21 @@ class TestCursos(unittest.TestCase):
                                        verbose=False)
 
         self.assertIn('obrigatórias', disciplinas)
-        self.assertIn('116319', disciplinas['obrigatórias'])
+        self.assertIn('167657', disciplinas['obrigatórias'])
+        disciplina = disciplinas['obrigatórias']['167657']
+        self.assertIn('Nome', disciplina)
+        self.assertEqual('CONTROLE PARA AUTOMAÇÃO', disciplina['Nome'])
+        self.assertIn('Créditos', disciplina)
+        self.assertIn('Teoria', disciplina['Créditos'])
+        self.assertEqual(3, disciplina['Créditos']['Teoria'])
+        self.assertIn('Prática', disciplina['Créditos'])
+        self.assertEqual(1, disciplina['Créditos']['Prática'])
+        self.assertIn('Extensão', disciplina['Créditos'])
+        self.assertEqual(0, disciplina['Créditos']['Extensão'])
+        self.assertIn('Estudo', disciplina['Créditos'])
+        self.assertEqual(4, disciplina['Créditos']['Estudo'])
+        self.assertIn('Área', disciplina)
+        self.assertEqual('AC', disciplina['Área'])
 
         self.assertIn('cadeias', disciplinas)
         self.assertIn('6', disciplinas['cadeias'])

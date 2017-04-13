@@ -463,12 +463,15 @@ class Oferta:
         return demanda
 
     @staticmethod
-    def turmas(disciplina, nivel=Nivel.GRADUACAO, verbose=False):
-        '''Dado o código de uma disciplina, acessa o Matrícula Web e retorna um
-        dicionário com a lista de turmas ofertadas para uma disciplina.
+    def turmas(disciplina, depto=116, nivel=Nivel.GRADUACAO, verbose=False):
+        '''Dado o código de uma disciplina, e o do Departamento que a oferece,
+        acessa o Matrícula Web e retorna um dicionário com a lista de turmas
+        ofertadas para uma disciplina.
 
         Argumentos:
         disciplina -- o código da disciplina.
+        depto -- o código do departamento que oferece a disciplina.
+                 (default 116) 116: CIC, 650:Gama
         nivel -- nível acadêmico da disciplina: graduacao ou posgraduacao.
                  (default graduacao)
         verbose -- indicação dos procedimentos sendo adotados
@@ -487,7 +490,10 @@ class Oferta:
         try:
             if verbose:
                 log('Buscando as turmas da disciplina ' + str(disciplina))
-            pagina_html = mweb(nivel, 'oferta_dados', disciplina)
+            filtro = str(disciplina)
+            if depto:
+                filtro += '&dep=' + str(depto)
+            pagina_html = mweb(nivel, 'oferta_dados', filtro)
             turmas_ofertadas = busca(TURMAS, pagina_html)
             for turma, ocupadas, professores, aux, reserva in turmas_ofertadas:
                 oferta[turma] = {}

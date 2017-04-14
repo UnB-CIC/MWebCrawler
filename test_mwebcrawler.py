@@ -8,7 +8,8 @@
 #
 # 1) Os testes da classe "Oferta" dependem das disciplinas sendo ofertadas no
 # momento! Por exemplo, o teste "test_turmas" só faz sentido se a disciplina
-# testada (116319) estiver sendo ofertada no momento da execução.
+# testada (116319) estiver sendo ofertada no momento da execução e o
+# "test_lista_de_espera" somente se houver uma lista de espera.
 #
 # 2) Por vezes o MatriculaWeb "não funciona", fazendo com que o(s) teste(s )
 # falhe(m). Nestes casos, o ideal é  esperar um pouco e tentar executar
@@ -18,7 +19,7 @@
 # implica em falha de TestOferta.test_departamentos.
 
 
-from mwebcrawler import Campus, Cursos, Disciplina, Nivel, Oferta
+from mwebcrawler import Campus, Cursos, Departamento, Disciplina, Nivel, Oferta
 import unittest
 
 
@@ -191,9 +192,17 @@ class TestOferta(unittest.TestCase):
 
     def test_turmas(self):
         codigo = 116319  # ESTRUTURAS DE DADOS
-        turmas = Oferta.turmas(codigo, nivel=Nivel.GRADUACAO, verbose=False)
+        turmas = Oferta.turmas(codigo, depto=Departamentos.CIC,
+                               nivel=Nivel.GRADUACAO, verbose=False)
 
         for t in ['A', 'B', 'C', 'E']:
+            self.assertIn(t, turmas)
+
+        codigo = 113476  # APC
+        turmas = Oferta.turmas(codigo, depto=Departamentos.GAMA,
+                               nivel=Nivel.GRADUACAO, verbose=False)
+
+        for t in ['AA', 'BB']:
             self.assertIn(t, turmas)
 
 

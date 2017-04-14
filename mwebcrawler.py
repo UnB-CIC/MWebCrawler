@@ -61,8 +61,8 @@ class Cursos:
 
         Argumentos:
         curso -- o código do curso.
-        nivel -- nível acadêmico do curso: graduacao ou posgraduacao.
-                 (default graduacao)
+        nivel -- nível acadêmico do curso.
+                 (default Nivel.GRADUACAO)
         verbose -- indicação dos procedimentos sendo adotados
 
         No caso de disciplinas de cadeias seletivas, o resultado é uma lista em
@@ -77,7 +77,7 @@ class Cursos:
         114014 OU (114626 E 114634)
 
         Ou seja, para graduação na habilitação 6912, é preciso ter sido
-        aprovado na disciplina QUIMICA GERAL ou ter sido aprovado nas
+        aprovado na disciplina QUIMICA GERAL ou ter sido aprovado em ambas as
         disciplinas QUI GERAL EXPERIMENTAL e QUIMICA GERAL TEORICA.
         '''
 
@@ -139,8 +139,8 @@ class Cursos:
 
         Argumentos:
         habilitacao -- o código da habilitação do curso.
-        nivel -- nível acadêmico do curso: graduacao ou posgraduacao.
-                 (default graduacao)
+        nivel -- nível acadêmico do curso.
+                 (default Nivel.GRADUACAO)
         verbose -- indicação dos procedimentos sendo adotados
         '''
         PERIODO = '<b>PERÍODO: (\d+).*?CRÉDITOS:</b> (\d+)</td>' \
@@ -155,7 +155,6 @@ class Cursos:
             pagina_html = mweb(nivel, 'fluxo', habilitacao)
             oferta = busca(PERIODO, pagina_html)
             for periodo, creditos, dados in oferta:
-                periodo = int(periodo)
                 disciplinas[periodo] = {}
                 disciplinas[periodo]['Créditos'] = creditos
                 disciplinas[periodo]['Disciplinas'] = busca(DISCIPLINA, dados)
@@ -174,8 +173,8 @@ class Cursos:
 
         Argumentos:
         curso -- o código do curso.
-        nivel -- nível acadêmico do curso: graduacao ou posgraduacao.
-                 (default graduacao)
+        nivel -- nível acadêmico do curso.
+                 (default Nivel.GRADUACAO)
         verbose -- indicação dos procedimentos sendo adotados
         '''
         OPCAO = '<a name=\d+></a><tr .*?><td  colspan=3><b>(\d+) - (.*?)' \
@@ -229,8 +228,8 @@ class Cursos:
         cursos existentes.
 
         Argumentos:
-        nivel -- nível acadêmico dos cursos: graduacao ou posgraduacao.
-                 (default graduacao)
+        nivel -- nível acadêmico dos cursos.
+                 (default Nivel.GRADUACAO)
         campus -- o campus onde o curso é oferecido: DARCY_RIBEIRO, PLANALTINA,
                   CEILANDIA ou GAMA
                   (default DARCY_RIBEIRO)
@@ -273,8 +272,8 @@ class Disciplina:
 
         Argumentos:
         disciplina -- o código da disciplina.
-        nivel -- nível acadêmico da disciplina: graduacao ou posgraduacao.
-                 (default graduacao)
+        nivel -- nível acadêmico da disciplina.
+                 (default Nivel.GRADUACAO)
         verbose -- indicação dos procedimentos sendo adotados
         '''
         DISCIPLINAS = 'Órgão:</b> </td><td>(\w+) - (.*?)</td></tr>.*?' \
@@ -323,8 +322,8 @@ class Disciplina:
 
         Argumentos:
         disciplina -- o código da disciplina.
-        nivel -- nível acadêmico da disciplina: graduacao ou posgraduacao.
-                 (default graduacao)
+        nivel -- nível acadêmico da disciplina.
+                 (default Nivel.GRADUACAO)
         verbose -- indicação dos procedimentos sendo adotados
 
         Cada item da lista tem uma relação 'OU' com os demais, e cada item é
@@ -370,8 +369,8 @@ class Oferta:
         departamentos com ofertas do semestre atual.
 
         Argumentos:
-        nivel -- nível acadêmico do Departamento: graduacao ou posgraduacao.
-                 (default graduacao)
+        nivel -- nível acadêmico do Departamento.
+                 (default Nivel.GRADUACAO)
         campus -- o campus onde o curso é oferecido: DARCY_RIBEIRO, PLANALTINA,
                   CEILANDIA ou GAMA
                   (default DARCY_RIBEIRO)
@@ -404,9 +403,8 @@ class Oferta:
 
         Argumentos:
         departamento -- o código do Departamento que oferece as disciplinas
-        nivel -- nível acadêmico das disciplinas buscadas: graduacao ou
-                 posgraduacao.
-                 (default graduacao)
+        nivel -- nível acadêmico das disciplinas buscadas.
+                 (default Nivel.GRADUACAO)
         verbose -- indicação dos procedimentos sendo adotados
 
         Lista completa dos Departamentos da UnB:
@@ -440,9 +438,8 @@ class Oferta:
         disciplina -- o código da disciplina
         turma -- identificador da turma
                  (default '\w+') (todas as disciplinas)
-        nivel -- nível acadêmico da disciplina buscada: graduacao ou
-                 posgraduacao.
-                 (default graduacao).
+        nivel -- nível acadêmico da disciplina buscada.
+                 (default Nivel.GRADUACAO).
         verbose -- indicação dos procedimentos sendo adotados
 
         O argumento 'turma' deve ser uma expressão regular.
@@ -483,9 +480,9 @@ class Oferta:
         Argumentos:
         disciplina -- o código da disciplina.
         depto -- o código do departamento que oferece a disciplina.
-                 (default CIC)
-        nivel -- nível acadêmico da disciplina: graduacao ou posgraduacao.
-                 (default graduacao)
+                 (default Departamento.CIC)
+        nivel -- nível acadêmico da disciplina.
+                 (default Nivel.GRADUACAO)
         verbose -- indicação dos procedimentos sendo adotados
         '''
         TURMAS = '<b>Turma</b>.*?<font size=4><b>(\w+)</b></font></div>' \

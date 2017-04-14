@@ -60,14 +60,14 @@ class TestCursos(unittest.TestCase):
         fluxo = Cursos.fluxo(opcao, nivel=Nivel.GRADUACAO, verbose=False)
 
         for p in range(1, 11):
-            self.assertIn(p, fluxo)
+            self.assertIn(str(p), fluxo)
 
-        self.assertIn('Créditos', fluxo[8])
-        self.assertEqual('16', fluxo[8]['Créditos'])
+        self.assertIn('Créditos', fluxo['8'])
+        self.assertEqual('16', fluxo['8']['Créditos'])
 
-        self.assertIn('Disciplinas', fluxo[8])
+        self.assertIn('Disciplinas', fluxo['8'])
         for d in ['168921', '184802', '207438']:
-            self.assertIn(d, fluxo[8]['Disciplinas'])
+            self.assertIn(d, fluxo['8']['Disciplinas'])
 
     def test_habilitacoes(self):
         curso = 949  # Eng. Mecatrônica

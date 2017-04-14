@@ -40,6 +40,17 @@ class Campus:
     GAMA = 4
 
 
+class Departamento:
+    '''Enumeração dos códigos de cada departamento.'''
+    CIC = 116
+    ENE = 163
+    ENM = 164
+    EST = 115
+    GAMA = 650
+    IFD = 550  # Instituto de Física
+    MAT = 113
+
+
 class Cursos:
     '''Métodos de busca associados a informações de cursos.'''
 
@@ -353,8 +364,8 @@ class Disciplina:
 class Oferta:
     '''Métodos de busca associados a informações da oferta de disciplinas.'''
     @staticmethod
-    def departamentos(nivel=Nivel.GRADUACAO,
-                      campus=Campus.DARCY_RIBEIRO, verbose=False):
+    def departamentos(nivel=Nivel.GRADUACAO, campus=Campus.DARCY_RIBEIRO,
+                      verbose=False):
         '''Acessa o Matrícula Web e retorna um dicionário com a lista de
         departamentos com ofertas do semestre atual.
 
@@ -463,7 +474,8 @@ class Oferta:
         return demanda
 
     @staticmethod
-    def turmas(disciplina, depto=116, nivel=Nivel.GRADUACAO, verbose=False):
+    def turmas(disciplina, depto=Departamento.CIC, nivel=Nivel.GRADUACAO,
+               verbose=False):
         '''Dado o código de uma disciplina, e o do Departamento que a oferece,
         acessa o Matrícula Web e retorna um dicionário com a lista de turmas
         ofertadas para uma disciplina.
@@ -471,7 +483,7 @@ class Oferta:
         Argumentos:
         disciplina -- o código da disciplina.
         depto -- o código do departamento que oferece a disciplina.
-                 (default 116) 116: CIC, 650:Gama
+                 (default CIC)
         nivel -- nível acadêmico da disciplina: graduacao ou posgraduacao.
                  (default graduacao)
         verbose -- indicação dos procedimentos sendo adotados

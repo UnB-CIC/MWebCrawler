@@ -33,8 +33,7 @@ def pre_requisitos(codigo, nivel=Nivel.GRADUACAO, profundidade=0,
 
 
 if __name__ == '__main__':
-    disciplinas = pre_requisitos(116343)
+    cod = 116343  #  LINGUAGENS DE PROGRAMACAO
+    disciplinas = pre_requisitos(cod)
     for disciplina in disciplinas:
         print disciplina, disciplinas[disciplina]
-
-    pass

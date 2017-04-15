@@ -25,7 +25,7 @@ import unittest
 
 class TestCursos(unittest.TestCase):
     def test_curriculo(self):
-        opcao = '6912'  # Mecatrônica
+        opcao = 6912  # Mecatrônica
         disciplinas = Cursos.curriculo(opcao, nivel=Nivel.GRADUACAO,
                                        verbose=False)
 
@@ -56,7 +56,7 @@ class TestCursos(unittest.TestCase):
         self.assertIn('113417', disciplinas['optativas'])
 
     def test_fluxo(self):
-        opcao = '1741'  # Eng. Computação
+        opcao = 1741  # Eng. Computação
         fluxo = Cursos.fluxo(opcao, nivel=Nivel.GRADUACAO, verbose=False)
 
         for p in range(1, 11):
@@ -192,14 +192,14 @@ class TestOferta(unittest.TestCase):
 
     def test_turmas(self):
         codigo = 116319  # ESTRUTURAS DE DADOS
-        turmas = Oferta.turmas(codigo, depto=Departamentos.CIC,
+        turmas = Oferta.turmas(codigo, depto=Departamento.CIC,
                                nivel=Nivel.GRADUACAO, verbose=False)
 
         for t in ['A', 'B', 'C', 'E']:
             self.assertIn(t, turmas)
 
         codigo = 113476  # APC
-        turmas = Oferta.turmas(codigo, depto=Departamentos.GAMA,
+        turmas = Oferta.turmas(codigo, depto=Departamento.GAMA,
                                nivel=Nivel.GRADUACAO, verbose=False)
 
         for t in ['AA', 'BB']:

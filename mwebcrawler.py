@@ -18,12 +18,16 @@ busca = re.findall
 RequestException = requests.exceptions.RequestException
 
 
-def mweb(nivel, pagina, cod):
+def mweb(nivel, pagina, params, timeout=1):
     '''Retorna a página no Matrícula Web referente às especificações dadas.'''
-    escopo = 'matriculaweb.unb.br/%s' % nivel
-    pagina = '%s.aspx?cod=%s' % (pagina, cod)
-    html = requests.get('https://%s/%s' % (escopo, pagina))
-    return html.content
+    try:
+        pagina = 'https://matriculaweb.unb.br/%s/%s.aspx' % (nivel, pagina)
+        html = requests.get(pagina, params=params, timeout=timeout)
+        return html.content
+    except RequestException:  # as e:
+        pass
+
+    return ''
 
 
 class Nivel:
@@ -88,47 +92,45 @@ class Cursos:
                      '<td><b>(.*?)</b></td><td>(\d+) (\d+) (\d+) (\d+)</td>' \
                      '<td>(.*?)</td></tr>'
 
+        curso = str(curso)
+        if verbose:
+            log('Buscando currículo do curso ' + curso)
+
+        pagina_html = mweb(nivel, 'curriculo', {'cod': curso})
+        obr_e_opts = busca(OBR_OPT, pagina_html)
+
         disciplinas = {'obrigatórias': {}, 'cadeias': {}, 'optativas': {}}
-        try:
-            if verbose:
-                log('Buscando currículo do curso ' + str(curso))
-            pagina_html = mweb(nivel, 'curriculo', curso)
-            obr_e_opts = busca(OBR_OPT, pagina_html)
+        for obrigatorias, cadeias, optativas in obr_e_opts:
+            disciplinas['obrigatórias'] = {}
+            for (cod, nome, e_ou, teor,
+                 prat, ext, est, area) in busca(DISCIPLINA, obrigatorias):
+                creditos = {'Teoria': int(teor), 'Prática': int(prat),
+                            'Extensão': int(ext), 'Estudo': int(est)}
+                disciplinas['obrigatórias'][cod] = {'Nome': nome.strip(),
+                                                    'Créditos': creditos,
+                                                    'Área': area.strip()}
 
-            for obrigatorias, cadeias, optativas in obr_e_opts:
-                disciplinas['obrigatórias'] = {}
+            for ciclo, discs in busca(CADEIAS, cadeias):
+                disciplinas['cadeias'][ciclo] = []
+                current = {}
                 for (cod, nome, e_ou, teor,
-                     prat, ext, est, area) in busca(DISCIPLINA, obrigatorias):
+                     prat, ext, est, area) in busca(DISCIPLINA, discs):
                     creditos = {'Teoria': int(teor), 'Prática': int(prat),
                                 'Extensão': int(ext), 'Estudo': int(est)}
-                    disciplinas['obrigatórias'][cod] = {'Nome': nome.strip(),
-                                                        'Créditos': creditos,
-                                                        'Área': area.strip()}
+                    current[cod] = {'Nome': nome.strip(),
+                                    'Créditos': creditos,
+                                    'Área': area.strip()}
+                    if e_ou.strip() != 'E':
+                        disciplinas['cadeias'][ciclo].append(current)
+                        current = {}
 
-                for ciclo, discs in busca(CADEIAS, cadeias):
-                    disciplinas['cadeias'][ciclo] = []
-                    current = {}
-                    for (cod, nome, e_ou, teor,
-                         prat, ext, est, area) in busca(DISCIPLINA, discs):
-                        creditos = {'Teoria': int(teor), 'Prática': int(prat),
-                                    'Extensão': int(ext), 'Estudo': int(est)}
-                        current[cod] = {'Nome': nome.strip(),
-                                        'Créditos': creditos,
-                                        'Área': area.strip()}
-                        if e_ou.strip() != 'E':
-                            disciplinas['cadeias'][ciclo].append(current)
-                            current = {}
-
-                for (cod, nome, e_ou, teor,
-                     prat, ext, est, area) in busca(DISCIPLINA, optativas):
-                    creditos = {'Teoria': int(teor), 'Prática': int(prat),
-                                'Extensão': int(ext), 'Estudo': int(est)}
-                    disciplinas['optativas'][cod] = {'Nome': nome.strip(),
-                                                     'Créditos': creditos,
-                                                     'Área': area.strip()}
-        except RequestException:  # as erro:
-            pass
-            # print 'Erro ao buscar %s para %s.\n%s' % (curso, nivel, erro)
+            for (cod, nome, e_ou, teor,
+                 prat, ext, est, area) in busca(DISCIPLINA, optativas):
+                creditos = {'Teoria': int(teor), 'Prática': int(prat),
+                            'Extensão': int(ext), 'Estudo': int(est)}
+                disciplinas['optativas'][cod] = {'Nome': nome.strip(),
+                                                 'Créditos': creditos,
+                                                 'Área': area.strip()}
 
         return disciplinas
 
@@ -147,21 +149,19 @@ class Cursos:
                   '(.*?)</tr></table>'
         DISCIPLINA = 'disciplina.aspx\?cod=\d+>(\d+)</a>'
 
+        habilitacao = str(habilitacao)
+        if verbose:
+            log('Buscando disciplinas no fluxo da habilitação ' +
+                habilitacao)
+
+        pagina_html = mweb(nivel, 'fluxo', {'cod': habilitacao})
+        oferta = busca(PERIODO, pagina_html)
+
         disciplinas = {}
-        try:
-            if verbose:
-                log('Buscando disciplinas no fluxo da habilitação ' +
-                    str(habilitacao))
-            pagina_html = mweb(nivel, 'fluxo', habilitacao)
-            oferta = busca(PERIODO, pagina_html)
-            for periodo, creditos, dados in oferta:
-                disciplinas[periodo] = {}
-                disciplinas[periodo]['Créditos'] = creditos
-                disciplinas[periodo]['Disciplinas'] = busca(DISCIPLINA, dados)
-        except RequestException:  # as erro:
-            pass
-            # print 'Erro ao buscar %s para %s.\n%s' %
-            #       (habilitacao, nivel, erro)
+        for periodo, creditos, dados in oferta:
+            disciplinas[periodo] = {}
+            disciplinas[periodo]['Créditos'] = creditos
+            disciplinas[periodo]['Disciplinas'] = busca(DISCIPLINA, dados)
 
         return disciplinas
 
@@ -194,31 +194,28 @@ class Cursos:
                 'Quantidade máxima de Créditos no Módulo Livre: </td>' \
                 '<td align=right>(\d+)</td>'
 
-        dados = {}
-        try:
-            if verbose:
-                log('Buscando informações da habilitação do curso ' +
-                    str(curso))
-            pagina_html = mweb(nivel, 'curso_dados', curso)
-            habilitacoes = busca(OPCAO, pagina_html)
-            for (habilitacao, nome, grau, l_min, l_max,
-                 formatura, obr, opt, livre) in habilitacoes:
-                dados[habilitacao] = {}
-                dados[habilitacao]['Nome'] = nome
-                dados[habilitacao]['Grau'] = grau
-                dados[habilitacao]['Limite mínimo de permanência'] = l_min
-                dados[habilitacao]['Limite máximo de permanência'] = l_max
-                dados[habilitacao]['Créditos para Formatura'] = formatura
-                dados[habilitacao]['Mínimo de Créditos Optativos na '
-                                   'Área de Concentração'] = obr
-                dados[habilitacao]['Quantidade mínima de Créditos Optativos '
-                                   'na Área Conexa'] = opt
-                dados[habilitacao]['Quantidade máxima de Créditos no '
-                                   'Módulo Livre'] = livre
-        except RequestException:  # as erro:
-            pass
-            # print 'Erro ao buscar %s para %s.\n%s' % (curso, nivel, erro)
+        curso = str(curso)
+        if verbose:
+            log('Buscando informações da habilitação do curso ' + curso)
 
+        pagina_html = mweb(nivel, 'curso_dados', {'cod': curso})
+        habilitacoes = busca(OPCAO, pagina_html)
+
+        dados = {}
+        for (habilitacao, nome, grau, l_min, l_max,
+             formatura, obr, opt, livre) in habilitacoes:
+            dados[habilitacao] = {}
+            dados[habilitacao]['Nome'] = nome
+            dados[habilitacao]['Grau'] = grau
+            dados[habilitacao]['Limite mínimo de permanência'] = l_min
+            dados[habilitacao]['Limite máximo de permanência'] = l_max
+            dados[habilitacao]['Créditos para Formatura'] = formatura
+            dados[habilitacao]['Mínimo de Créditos Optativos na '
+                               'Área de Concentração'] = obr
+            dados[habilitacao]['Quantidade mínima de Créditos Optativos '
+                               'na Área Conexa'] = opt
+            dados[habilitacao]['Quantidade máxima de Créditos no '
+                               'Módulo Livre'] = livre
         return dados
 
     @staticmethod
@@ -234,8 +231,6 @@ class Cursos:
                   CEILANDIA ou GAMA
                   (default DARCY_RIBEIRO)
         verbose -- indicação dos procedimentos sendo adotados
-
-        O argumento 'codigo' deve ser uma expressão regular.
         '''
         CURSOS = '<tr CLASS=PadraoMenor bgcolor=.*?>'\
                  '<td>(.*?)</td>' \
@@ -243,21 +238,19 @@ class Cursos:
                  '.*?aspx\?cod=(\d+)>(.*?)</a></td>' \
                  '<td>(.*?)</td></tr>'
 
+        campus = str(campus)
+        if verbose:
+            log('Buscando lista de cursos para o campus ' + campus)
+
+        pagina_html = mweb(nivel, 'curso_rel', {'cod': campus})
+        cursos_existentes = busca(CURSOS, pagina_html)
+
         lista = {}
-        try:
-            if verbose:
-                log('Buscando lista de cursos')
-            pagina_html = mweb(nivel, 'curso_rel', campus)
-            cursos_existentes = busca(CURSOS, pagina_html)
-            for modalidade, codigo, denominacao, turno in cursos_existentes:
-                lista[codigo] = {}
-                lista[codigo]['Modalidade'] = modalidade
-                lista[codigo]['Denominação'] = denominacao
-                lista[codigo]['Turno'] = turno
-        except RequestException:  # as erro:
-            pass
-            # print 'Erro ao buscar relação de cursos para %s em %d.\n%s' %
-            #     (nivel, campus, erro)
+        for modalidade, codigo, denominacao, turno in cursos_existentes:
+            lista[codigo] = {}
+            lista[codigo]['Modalidade'] = modalidade
+            lista[codigo]['Denominação'] = denominacao
+            lista[codigo]['Turno'] = turno
 
         return lista
 
@@ -289,28 +282,26 @@ class Disciplina:
                       'Bibliografia:</b> </td><td class=PadraoMenor>' \
                       '<p align=justify>(.*?)</P></td></tr>'
 
+        disciplina = str(disciplina)
+        if verbose:
+            log('Buscando informações da disciplina ' + disciplina)
+
+        pagina_html = mweb(nivel, 'disciplina', {'cod': disciplina})
+        informacoes = busca(DISCIPLINAS, pagina_html)
+
         infos = {}
-        try:
-            if verbose:
-                log('Buscando informações da disciplina ' + str(disciplina))
-            pagina_html = mweb(nivel, 'disciplina', disciplina)
-            informacoes = busca(DISCIPLINAS, pagina_html)
-            for (sigla, nome, denominacao, nivel, vigencia,
-                 pre_req, ementa, programa, bibliografia) in informacoes:
-                infos['Sigla do Departamento'] = sigla
-                infos['Nome do Departamento'] = nome
-                infos['Denominação'] = denominacao
-                infos['Nível'] = nivel  # sobrescreve o argumento da função
-                infos['Vigência'] = vigencia
-                infos['Pré-requisitos'] = pre_req.replace('<br>', ' ')
-                infos['Ementa'] = ementa.replace('<br />', '\n')
-                if programa:
-                    infos['Programa'] = programa.replace('<br />', '\n')
-                infos['Bibliografia'] = bibliografia.replace('<br />', '\n')
-        except RequestException:  # as erro
-            pass
-            # print 'Erro ao buscar %s para %s.\n%s' %
-            #       (disciplina, nivel, erro)
+        for (sigla, nome, denominacao, nivel, vigencia,
+             pre_req, ementa, programa, bibliografia) in informacoes:
+            infos['Sigla do Departamento'] = sigla
+            infos['Nome do Departamento'] = nome
+            infos['Denominação'] = denominacao
+            infos['Nível'] = nivel  # sobrescreve o argumento da função
+            infos['Vigência'] = vigencia
+            infos['Pré-requisitos'] = pre_req.replace('<br>', ' ')
+            infos['Ementa'] = ementa.replace('<br />', '\n')
+            if programa:
+                infos['Programa'] = programa.replace('<br />', '\n')
+            infos['Bibliografia'] = bibliografia.replace('<br />', '\n')
 
         return infos
 
@@ -342,20 +333,18 @@ class Disciplina:
                       '<td class=PadraoMenor>(.*?)</td></tr>'
         CODIGO = '(\d{6})'
 
+        disciplina = str(disciplina)
+        if verbose:
+            log('Buscando a lista de pré-requisitos para a disciplina ' +
+                disciplina)
+
+        pagina_html = mweb(nivel, 'disciplina_pop', {'cod': disciplina})
+        requisitos = busca(DISCIPLINAS, pagina_html)
+
         pre_req = []
-        try:
-            if verbose:
-                log('Buscando a lista de pré-requisitos para a disciplina ' +
-                    str(disciplina))
-            pagina_html = mweb(nivel, 'disciplina_pop', disciplina)
-            requisitos = busca(DISCIPLINAS, pagina_html)
-            for requisito in requisitos:
-                for disciplinas in requisito.split(' OU<br>'):
-                    pre_req.append(busca(CODIGO, disciplinas))
-        except RequestException:  # as erro:
-            pass
-            # print 'Erro ao buscar %s para %s.\n%s' %
-            #       (disciplina, nivel, erro)
+        for requisito in requisitos:
+            for disciplinas in requisito.split(' OU<br>'):
+                pre_req.append(busca(CODIGO, disciplinas))
 
         return [cod_disc for cod_disc in pre_req if cod_disc]
 
@@ -380,19 +369,17 @@ class Oferta:
                         '<td>\d+</td><td>(\w+)</td>' \
                         '.*?aspx\?cod=(\d+)>(.*?)</a></td></tr>'
 
+        if verbose:
+            log('Buscando a informações de departamentos com oferta')
+
+        pagina_html = mweb(nivel, 'oferta_dep', {'cod': str(campus)})
+        deptos_existentes = busca(DEPARTAMENTOS, pagina_html)
+
         deptos = {}
-        try:
-            if verbose:
-                log('Buscando a informações de departamentos com oferta')
-            pagina_html = mweb(nivel, 'oferta_dep', campus)
-            deptos_existentes = busca(DEPARTAMENTOS, pagina_html)
-            for sigla, codigo, denominacao in deptos_existentes:
-                deptos[codigo] = {}
-                deptos[codigo]['Sigla'] = sigla
-                deptos[codigo]['Denominação'] = denominacao
-        except RequestException:
-            pass
-            # print 'Erro ao buscar %s em %d.\n%s' % (nivel, campus, erro)
+        for sigla, codigo, denominacao in deptos_existentes:
+            deptos[codigo] = {}
+            deptos[codigo]['Sigla'] = sigla
+            deptos[codigo]['Denominação'] = denominacao
 
         return deptos
 
@@ -412,19 +399,17 @@ class Oferta:
         '''
         DISCIPLINAS = 'oferta_dados.aspx\?cod=(\d+).*?>(.*?)</a>'
 
+        departamento = str(departamento)
+        if verbose:
+            log('Buscando a informações de disciplinas do departamento ' +
+                departamento)
+
+        pagina_html = mweb(nivel, 'oferta_dis', {'cod': departamento})
+        ofertadas = busca(DISCIPLINAS, pagina_html)
+
         oferta = {}
-        try:
-            if verbose:
-                log('Buscando a informações de disciplinas do departamento ' +
-                    str(departamento))
-            pagina_html = mweb(nivel, 'oferta_dis', departamento)
-            ofertadas = busca(DISCIPLINAS, pagina_html)
-            for codigo, nome in ofertadas:
-                oferta[codigo] = nome
-        except RequestException:
-            pass
-            # print 'Erro ao buscar %s para %s.\n%s' %
-            #       (departamento, nivel, erro)
+        for codigo, nome in ofertadas:
+            oferta[codigo] = nome
 
         return oferta
 
@@ -451,22 +436,20 @@ class Oferta:
         TURMAS = '<td align=center >(%s)</td>  ' \
                  '<td align=center >(\d+)</td></tr>' % turma
 
+        disciplina = str(disciplina)
+        if verbose:
+            log('Buscando turmas com lista de espera para a disciplina ' +
+                disciplina)
+
+        pagina_html = mweb(nivel, 'faltavaga_rel', {'cod': disciplina})
+        turmas_com_demanda = busca(TABELA, pagina_html)
+
         demanda = {}
-        try:
-            if verbose:
-                log('Buscando turmas com lista de espera para a disciplina ' +
-                    str(disciplina))
-            pagina_html = mweb(nivel, 'faltavaga_rel', disciplina)
-            turmas_com_demanda = busca(TABELA, pagina_html)
-            for tabela in turmas_com_demanda:
-                for turma, vagas_desejadas in busca(TURMAS, tabela):
-                    vagas = int(vagas_desejadas)
-                    if vagas > 0:
-                        demanda[turma] = vagas
-        except RequestException:  # as erro:
-            pass
-            # print 'Erro ao buscar %s para %s.\n%s' %
-            #       (disciplina, nivel, erro)
+        for tabela in turmas_com_demanda:
+            for turma, vagas_desejadas in busca(TURMAS, tabela):
+                vagas = int(vagas_desejadas)
+                if vagas > 0:
+                    demanda[turma] = vagas
 
         return demanda
 
@@ -495,25 +478,24 @@ class Oferta:
                  '(Reserva para curso.*?<td align=left>(.*?)</td>.*?)?' \
                  '<td colspan=6 bgcolor=white height=20>'
 
+        disciplina = str(disciplina)
+        if verbose:
+            log('Buscando as turmas da disciplina ' + disciplina)
+
+        params = {'cod': disciplina}
+        if depto:
+            params['dep'] = str(depto)
+
+        pagina_html = mweb(nivel, 'oferta_dados', params)
+        turmas_ofertadas = busca(TURMAS, pagina_html)
+
         oferta = {}
-        try:
-            if verbose:
-                log('Buscando as turmas da disciplina ' + str(disciplina))
-            filtro = str(disciplina)
-            if depto:
-                filtro += '&dep=' + str(depto)
-            pagina_html = mweb(nivel, 'oferta_dados', filtro)
-            turmas_ofertadas = busca(TURMAS, pagina_html)
-            for turma, ocupadas, professores, aux, reserva in turmas_ofertadas:
-                oferta[turma] = {}
-                oferta[turma]['Alunos Matriculados'] = int(ocupadas)
-                oferta[turma]['Professores'] = professores.split('<br>')
-                if reserva:
-                    oferta[turma]['Turma Reservada'] = reserva
-        except RequestException:  # as erro:
-            pass
-            # print 'Erro ao buscar %s para %s.\n%s'
-            #       % (disciplina, nivel, erro)
+        for turma, ocupadas, professores, aux, reserva in turmas_ofertadas:
+            oferta[turma] = {}
+            oferta[turma]['Alunos Matriculados'] = int(ocupadas)
+            oferta[turma]['Professores'] = professores.split('<br>')
+            if reserva:
+                oferta[turma]['Turma Reservada'] = reserva
 
         return oferta
 

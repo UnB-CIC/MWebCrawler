@@ -17,23 +17,24 @@ def pre_requisitos(codigo, nivel=Nivel.GRADUACAO, profundidade=0,
 
     Argumentos:
     codigo -- o código da disciplina
-    nivel -- nível acadêmico das disciplinas buscadas: graduacao ou
-             posgraduacao
-             (default graduacao).
+    nivel -- nível acadêmico das disciplinas buscadas
+             (default Nivel.GRADUACAO)
     profundidade -- profundidade da busca
+                    (default 0)
     verbose -- indicação dos procedimentos sendo adotados
+               (default False)
     '''
     disciplinas = {}
-    for prerequisitos in Disciplina.pre_requisitos(codigo, nivel, verbose):
-        for pr in prerequisitos:
-            prs = pre_requisitos(pr, nivel, profundidade + 1, verbose)
-            disciplinas[pr] = prs
+    for pre_reqs in Disciplina.pre_requisitos(codigo, nivel, verbose):
+        for codigo in pre_reqs:
+            disciplinas[codigo] = pre_requisitos(codigo, nivel,
+                                                 profundidade + 1, verbose)
 
     return disciplinas
 
 
 if __name__ == '__main__':
-    cod = 116343  #  LINGUAGENS DE PROGRAMACAO
+    cod = 116343  # LINGUAGENS DE PROGRAMACAO
     disciplinas = pre_requisitos(cod)
-    for disciplina in disciplinas:
-        print disciplina, disciplinas[disciplina]
+    for codigo, pre_reqs in disciplinas.items():
+        print codigo, pre_reqs

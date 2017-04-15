@@ -64,10 +64,11 @@ class Cursos:
         disciplinas definidas no currículo do curso.
 
         Argumentos:
-        curso -- o código do curso.
-        nivel -- nível acadêmico do curso.
+        curso -- o código do curso
+        nivel -- nível acadêmico do curso
                  (default Nivel.GRADUACAO)
         verbose -- indicação dos procedimentos sendo adotados
+                   (default False)
 
         No caso de disciplinas de cadeias seletivas, o resultado é uma lista em
         que cada item tem uma relação 'OU' com os demais, e cada item é um
@@ -140,10 +141,11 @@ class Cursos:
         disciplinas por período definidas no fluxo da habilitação.
 
         Argumentos:
-        habilitacao -- o código da habilitação do curso.
-        nivel -- nível acadêmico do curso.
+        habilitacao -- o código da habilitação do curso
+        nivel -- nível acadêmico do curso
                  (default Nivel.GRADUACAO)
         verbose -- indicação dos procedimentos sendo adotados
+                   (default False)
         '''
         PERIODO = '<b>PERÍODO: (\d+).*?CRÉDITOS:</b> (\d+)</td>' \
                   '(.*?)</tr></table>'
@@ -172,10 +174,13 @@ class Cursos:
         informações referentes a cada habilitação no curso.
 
         Argumentos:
-        curso -- o código do curso.
-        nivel -- nível acadêmico do curso.
+        curso -- o código do curso
+        nivel -- nível acadêmico do curso
                  (default Nivel.GRADUACAO)
+        campus -- o campus onde o curso é oferecido
+                  (default DARCY_RIBEIRO)
         verbose -- indicação dos procedimentos sendo adotados
+                   (default False)
         '''
         OPCAO = '<a name=\d+></a><tr .*?><td  colspan=3><b>(\d+) - (.*?)' \
                 '</b></td></tr>.*?' \
@@ -225,12 +230,12 @@ class Cursos:
         cursos existentes.
 
         Argumentos:
-        nivel -- nível acadêmico dos cursos.
+        nivel -- nível acadêmico dos cursos
                  (default Nivel.GRADUACAO)
-        campus -- o campus onde o curso é oferecido: DARCY_RIBEIRO, PLANALTINA,
-                  CEILANDIA ou GAMA
+        campus -- o campus onde o curso é oferecido
                   (default DARCY_RIBEIRO)
         verbose -- indicação dos procedimentos sendo adotados
+                   (default False)
         '''
         CURSOS = '<tr CLASS=PadraoMenor bgcolor=.*?>'\
                  '<td>(.*?)</td>' \
@@ -264,10 +269,11 @@ class Disciplina:
         disciplina.
 
         Argumentos:
-        disciplina -- o código da disciplina.
-        nivel -- nível acadêmico da disciplina.
+        disciplina -- o código da disciplina
+        nivel -- nível acadêmico da disciplina
                  (default Nivel.GRADUACAO)
         verbose -- indicação dos procedimentos sendo adotados
+                   (default False)
         '''
         DISCIPLINAS = 'Órgão:</b> </td><td>(\w+) - (.*?)</td></tr>.*?' \
                       'Denominação:</b> </td><td>(.*?)</td></tr>.*?' \
@@ -312,10 +318,11 @@ class Disciplina:
         dada.
 
         Argumentos:
-        disciplina -- o código da disciplina.
-        nivel -- nível acadêmico da disciplina.
+        disciplina -- o código da disciplina
+        nivel -- nível acadêmico da disciplina
                  (default Nivel.GRADUACAO)
         verbose -- indicação dos procedimentos sendo adotados
+                   (default False)
 
         Cada item da lista tem uma relação 'OU' com os demais, e cada item é
         uma outra lista cujos itens têm uma relação 'E' entre si. Por exemplo:
@@ -341,12 +348,12 @@ class Disciplina:
         pagina_html = mweb(nivel, 'disciplina_pop', {'cod': disciplina})
         requisitos = busca(DISCIPLINAS, pagina_html)
 
-        pre_req = []
-        for requisito in requisitos:
-            for disciplinas in requisito.split(' OU<br>'):
-                pre_req.append(busca(CODIGO, disciplinas))
+        pre_reqs = []
+        for req in requisitos:
+            for disciplina in req.split(' OU<br>'):
+                pre_reqs.append(busca(CODIGO, disciplina))
 
-        return [cod_disc for cod_disc in pre_req if cod_disc]
+        return [codigo for codigo in pre_reqs if codigo]
 
 
 class Oferta:
@@ -358,12 +365,12 @@ class Oferta:
         departamentos com ofertas do semestre atual.
 
         Argumentos:
-        nivel -- nível acadêmico do Departamento.
+        nivel -- nível acadêmico do Departamento
                  (default Nivel.GRADUACAO)
-        campus -- o campus onde o curso é oferecido: DARCY_RIBEIRO, PLANALTINA,
-                  CEILANDIA ou GAMA
-                  (default DARCY_RIBEIRO)
+        campus -- o campus onde o curso é oferecido
+                  (default Campus.DARCY_RIBEIRO)
         verbose -- indicação dos procedimentos sendo adotados
+                   (default False)
         '''
         DEPARTAMENTOS = '<tr CLASS=PadraoMenor bgcolor=.*?>'\
                         '<td>\d+</td><td>(\w+)</td>' \
@@ -390,9 +397,10 @@ class Oferta:
 
         Argumentos:
         departamento -- o código do Departamento que oferece as disciplinas
-        nivel -- nível acadêmico das disciplinas buscadas.
+        nivel -- nível acadêmico das disciplinas buscadas
                  (default Nivel.GRADUACAO)
         verbose -- indicação dos procedimentos sendo adotados
+                   (default False)
 
         Lista completa dos Departamentos da UnB:
         matriculaweb.unb.br/matriculaweb/graduacao/oferta_dep.aspx?cod=1
@@ -423,9 +431,10 @@ class Oferta:
         disciplina -- o código da disciplina
         turma -- identificador da turma
                  (default '\w+') (todas as disciplinas)
-        nivel -- nível acadêmico da disciplina buscada.
-                 (default Nivel.GRADUACAO).
+        nivel -- nível acadêmico da disciplina buscada
+                 (default Nivel.GRADUACAO)
         verbose -- indicação dos procedimentos sendo adotados
+                   (default False)
 
         O argumento 'turma' deve ser uma expressão regular.
         '''
@@ -461,12 +470,13 @@ class Oferta:
         ofertadas para uma disciplina.
 
         Argumentos:
-        disciplina -- o código da disciplina.
-        depto -- o código do departamento que oferece a disciplina.
+        disciplina -- o código da disciplina
+        depto -- o código do departamento que oferece a disciplina
                  (default Departamento.CIC)
-        nivel -- nível acadêmico da disciplina.
+        nivel -- nível acadêmico da disciplina
                  (default Nivel.GRADUACAO)
         verbose -- indicação dos procedimentos sendo adotados
+                   (default False)
         '''
         TURMAS = '<b>Turma</b>.*?<font size=4><b>(\w+)</b></font></div>' \
                  '.*?' \

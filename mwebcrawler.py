@@ -55,6 +55,14 @@ class Departamento:
     MAT = 113
 
 
+class Habilitacoes:
+    '''Enumeração das habilitações de cada curso.'''
+    BCC = 1856  # Ciência da Computação
+    LIC = 1899  # Computação
+    ENC = 1741  # Engenharia de Computação
+    ENM = 6912  # Engenharia de Controle e Automação
+
+
 class Cursos:
     '''Métodos de busca associados a informações de cursos.'''
 

@@ -4,21 +4,25 @@
 #
 # Funções úteis para coordenação.
 
-from mwebcrawler import Campus, Cursos, Disciplina, Nivel, Oferta
+from mwebcrawler import (Campus, Cursos, Departamento, Disciplina,
+                         Habilitacoes, Nivel, Oferta)
 
 
-def alunos_matriculados(disciplina, nivel=Nivel.GRADUACAO, verbose=False):
+def alunos_matriculados(disciplina, depto=Departamento.CIC,
+                        nivel=Nivel.GRADUACAO, verbose=False):
     '''Retorna o total de alunos matriculados em todas as turmas da disciplina
     do código dado.
 
     Argumentos:
     disciplina -- o código da disciplina
-    nivel -- nível acadêmico das disciplinas buscadas: graduacao ou
-             posgraduacao
-             (default graduacao).
+    nivel -- nível acadêmico da disciplina buscada
+             (default Nivel.GRADUACAO)
+    depto -- o código do departamento que oferece a disciplina
+             (default Departamento.CIC)
     verbose -- indicação dos procedimentos sendo adotados
+               (default False)
     '''
-    disciplinas = Oferta.turmas(disciplina, nivel, verbose=verbose)
+    disciplinas = Oferta.turmas(disciplina, depto, nivel, verbose)
 
     return sum([disciplinas[t]['Alunos Matriculados'] for t in disciplinas])
 
@@ -29,10 +33,10 @@ def demanda_nao_atendida(disciplina, nivel=Nivel.GRADUACAO, verbose=False):
 
     Argumentos:
     disciplina -- o código da disciplina
-    nivel -- nível acadêmico das disciplinas buscadas: graduacao ou
-             posgraduacao
-             (default graduacao).
+    nivel -- nível acadêmico da disciplina buscada
+             (default Nivel.GRADUACAO)
     verbose -- indicação dos procedimentos sendo adotados
+               (default False)
     '''
     lista = Oferta.lista_de_espera(disciplina, nivel=nivel, verbose=verbose)
     return sum(lista.values())
@@ -45,11 +49,11 @@ def ocupacao(oferta, cursos, nivel=Nivel.GRADUACAO, verbose=False):
     Argumentos:
     oferta -- dicionário com a lista de oferta
     cursos -- lista com os cursos com disciplinas (da oferta) em seus
-              curriculos
-    nivel -- nível acadêmico das disciplinas buscadas: graduacao ou
-             posgraduacao
-             (default graduacao).
+              currículos
+    nivel -- nível acadêmico da disciplina buscada
+             (default Nivel.GRADUACAO)
     verbose -- indicação dos procedimentos sendo adotados
+               (default False)
     '''
     obr, opt = set(), set()
     for codigo in cursos:
@@ -85,12 +89,12 @@ def ocupacao_minima(oferta, cursos, quorum, nivel=Nivel.GRADUACAO,
     Argumentos:
     oferta -- dicionário com a lista de oferta
     cursos -- lista com os cursos com disciplinas (da oferta) em seus
-              curriculos
+              currículos
     quorum -- quantidade mínima de alunos em uma turma
-    nivel -- nível acadêmico das disciplinas buscadas: graduacao ou
-             posgraduacao
-             (default graduacao).
+    nivel -- nível acadêmico das disciplinas buscadas
+             (default Nivel.GRADUACAO)
     verbose -- indicação dos procedimentos sendo adotados
+               (default False)
     '''
     obr, opt = ocupacao(oferta, cursos, nivel, verbose)
 
@@ -111,13 +115,12 @@ def lista_obrigatorias(habilitacoes, deptos, nivel=Nivel.GRADUACAO,
                     oferta) em seus currículos
     deptos -- coleção de siglas de departamentos da UnB para os quais se deseja
               identificar as disciplinas obrigatórias
-    nivel -- nível acadêmico das disciplinas buscadas: graduacao ou
-             posgraduacao
-             (default graduacao).
-    campus -- o campus onde a habilitação é oferecida: DARCY_RIBEIRO,
-              PLANALTINA, CEILANDIA ou GAMA
-              (default DARCY_RIBEIRO)
+    nivel -- nível acadêmico das disciplinas buscadas
+             (default Nivel.GRADUACAO)
+    campus -- o campus onde a habilitação é oferecida
+              (default Campus.DARCY_RIBEIRO)
     verbose -- indicação dos procedimentos sendo adotados
+               (default False)
     '''
     lista = {}
     for opcao in habilitacoes:
@@ -138,51 +141,41 @@ def lista_obrigatorias(habilitacoes, deptos, nivel=Nivel.GRADUACAO,
 
 
 if __name__ == '__main__':
-    # import sys
-    # dept = 116 if len(sys.argv) < 2 else int(sys.argv[1])
-    # nivel = Nivel.GRADUACAO if len(sys.argv) < 3 else sys.argv[2]
-    # campus = Campus.DARCY_RIBEIRO
-    # quorum_minimo = 1 if len(sys.argv) < 4 else int(sys.argv[3])
-    # verbose = False
-
-    # oferta = Oferta.disciplinas(dept, nivel, verbose)
-
-    # print '\nAlunos matriculados:'
-    # for codigo in sorted(oferta, key=oferta.get):
-    #     alunos = alunos_matriculados(codigo, nivel, verbose)
-    #     if alunos > 0:
-    #         print '%s %s (%d alunos)' % (codigo, oferta[codigo], alunos)
-
-    # print '\nDemanda não atendida:'
-    # for codigo in sorted(oferta, key=oferta.get):
-    #     demanda = demanda_nao_atendida(codigo, nivel, verbose)
-    #     if demanda > 0:
-    #         print '%s %s (%d alunos)' % (codigo, oferta[codigo], demanda)
-
-    # print '\nOcupação de turmas:'
-    # cursos = Cursos.relacao(nivel, campus, verbose)
-    # habilitacoes = [h
-    #                 for curso in cursos
-    #                 for h
-    #                 in Cursos.habilitacoes(curso, nivel, campus, verbose)]
-    # obr, opt = ocupacao_minima(oferta, habilitacoes, quorum_minimo, nivel,
-    #                            verbose)
-    # with open('obrigatorias.csv', 'w') as f:
-    #     for codigo in sorted(obr, key=obr.get, reverse=True):
-    #         cod, t = codigo.split(' ')
-    #         f.write(','.join([cod, oferta[cod], t, str(obr[codigo])]) + '\n')
-    # with open('optativas.csv', 'w') as f:
-    #     for codigo in sorted(opt, key=opt.get, reverse=True):
-    #         cod, t = codigo.split(' ')
-    #         f.write(','.join([cod, oferta[cod], t, str(opt[codigo])]) + '\n')
-
     nivel = Nivel.GRADUACAO
-    campus = Campus.DARCY_RIBEIRO
     verbose = False
-    cursos = Cursos.relacao(nivel, campus, verbose)
-    habilitacoes = [h for curso in cursos for h in Cursos.habilitacoes(curso)]
-    # habilitacoes = [6912]  # Eng. Mecatrônica
-    deptos = ['CIC']  # , 'ENE', 'ENM']
-    lista = lista_obrigatorias(habilitacoes, deptos, nivel, campus, verbose)
+    depto = str(Departamento.CIC)
+
+    oferta = Oferta.disciplinas(depto, nivel, verbose)
+
+    print '\nAlunos matriculados no Departamento %s:' % depto
+    for codigo in sorted(oferta, key=oferta.get):
+        alunos = alunos_matriculados(codigo, depto, nivel, verbose)
+        if alunos > 0:
+            print '%s %s (%d alunos)' % (codigo, oferta[codigo], alunos)
+
+    print '\nDemanda não atendida:'
+    for codigo in sorted(oferta, key=oferta.get):
+        demanda = demanda_nao_atendida(codigo, nivel, verbose)
+        if demanda > 0:
+            print '%s %s (%d alunos)' % (codigo, oferta[codigo], demanda)
+
+    print '\nOcupação de turmas:'
+    habilitacoes = [Habilitacoes.BCC, Habilitacoes.LIC, Habilitacoes.ENC,
+                    Habilitacoes.ENM]
+    obr, opt = ocupacao_minima(oferta, habilitacoes, 1, nivel, verbose)
+
+    print('\tObrigatórias')
+    for codigo in sorted(obr, key=obr.get, reverse=True):
+        cod, t = codigo.split(' ')
+        print('\t%s' % ','.join([cod, oferta[cod], t, str(obr[codigo])]))
+    print('\n116479\tOptativas')
+    for codigo in sorted(opt, key=opt.get, reverse=True):
+        cod, t = codigo.split(' ')
+        print('\t%s' % ','.join([cod, oferta[cod], t, str(opt[codigo])]))
+
+    print('Disciplinas obrigatórias de um curso')
+    deptos = ['CIC']
+    campus = Campus.DARCY_RIBEIRO
+    lista = lista_obrigatorias([Habilitacoes.ENM], deptos, nivel, campus,
+                               verbose)
     print lista
-    pass

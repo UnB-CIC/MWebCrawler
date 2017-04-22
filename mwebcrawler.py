@@ -488,6 +488,8 @@ class Oferta:
         '''
         TURMAS = '<b>Turma</b>.*?<font size=4><b>(\w+)</b></font></div>' \
                  '.*?' \
+                 '<td>Total</td><td>Vagas</td><td><b>(\d+)</b>' \
+                 '.*?' \
                  '<td>Ocupadas</td>' \
                  '<td><b><font color=(?:red|green)>(\d+)</font></b></td>' \
                  '.*?' \
@@ -508,8 +510,10 @@ class Oferta:
         turmas_ofertadas = busca(TURMAS, pagina_html)
 
         oferta = {}
-        for turma, ocupadas, professores, aux, reserva in turmas_ofertadas:
+        for (turma, vagas, ocupadas,
+             professores, aux, reserva) in turmas_ofertadas:
             oferta[turma] = {}
+            oferta[turma]['Vagas'] = int(vagas)
             oferta[turma]['Alunos Matriculados'] = int(ocupadas)
             oferta[turma]['Professores'] = professores.split('<br>')
             if reserva:

@@ -169,6 +169,7 @@ class Cursos:
 
         disciplinas = {}
         for periodo, creditos, dados in oferta:
+            periodo = int(periodo)
             disciplinas[periodo] = {}
             disciplinas[periodo]['Créditos'] = creditos
             disciplinas[periodo]['Disciplinas'] = busca(DISCIPLINA, dados)
@@ -471,7 +472,7 @@ class Oferta:
         return demanda
 
     @staticmethod
-    def turmas(disciplina, depto=Departamento.CIC, nivel=Nivel.GRADUACAO,
+    def turmas(disciplina, depto=None, nivel=Nivel.GRADUACAO,
                verbose=False):
         '''Dado o código de uma disciplina, e o do Departamento que a oferece,
         acessa o Matrícula Web e retorna um dicionário com a lista de turmas

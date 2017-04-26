@@ -140,10 +140,37 @@ def lista_obrigatorias(habilitacoes, deptos, nivel=Nivel.GRADUACAO,
     return lista
 
 
+
+
+def turmas_reservadas_no_fluxo(habilitacao, filtro_reserva=''):
+    '''Mostra a lista de turmas com reserva de vagas das disciplinas do fluxo
+    da habilitação dada.
+
+    Argumentos:
+    habilitacao -- código da habilitação com disciplinas da oferta
+    filtro_reserva -- filtro para reduzir o escopo da busca
+                      (default '')
+    '''
+    fluxo = Cursos.fluxo(habilitacao)
+
+    for periodo in sorted(fluxo.keys()):
+        print('Período: %d' % periodo)
+        for disciplina in fluxo[periodo]['Disciplinas']:
+            turmas = Oferta.turmas(disciplina).items()
+            for turma, detalhes in turmas:
+                if 'Turma Reservada' in detalhes:
+                    for reserva, vagas in detalhes['Turma Reservada'].items():
+                        if filtro_reserva in reserva:
+                            print('\t  %s (%s) %s %s' % (disciplina, turma,
+                                                         reserva, vagas))
+
+
 if __name__ == '__main__':
     nivel = Nivel.GRADUACAO
     verbose = False
     depto = str(Departamento.CIC)
+
+    # turmas_reservadas_no_fluxo(6912, 'Mecatrônica')
 
     oferta = Oferta.disciplinas(depto, nivel, verbose)
 

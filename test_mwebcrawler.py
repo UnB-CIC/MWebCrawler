@@ -60,14 +60,15 @@ class TestCursos(unittest.TestCase):
         fluxo = Cursos.fluxo(opcao, nivel=Nivel.GRADUACAO, verbose=False)
 
         for p in range(1, 11):
-            self.assertIn(str(p), fluxo)
+            self.assertIn(p, fluxo)
 
-        self.assertIn('Créditos', fluxo['8'])
-        self.assertEqual('16', fluxo['8']['Créditos'])
+        oitavo_periodo = fluxo[8]
+        self.assertIn('Créditos', oitavo_periodo)
+        self.assertEqual('16', oitavo_periodo['Créditos'])
 
-        self.assertIn('Disciplinas', fluxo['8'])
+        self.assertIn('Disciplinas', oitavo_periodo)
         for d in ['168921', '184802', '207438']:
-            self.assertIn(d, fluxo['8']['Disciplinas'])
+            self.assertIn(d, oitavo_periodo['Disciplinas'])
 
     def test_habilitacoes(self):
         curso = 949  # Eng. Mecatrônica
@@ -197,6 +198,16 @@ class TestOferta(unittest.TestCase):
 
         for t in ['A', 'B', 'C', 'E']:
             self.assertIn(t, turmas)
+
+        turma = turmas['A']
+        self.assertIn('Vagas', turma)
+        self.assertGreater(turma['Vagas'], 0)
+        self.assertIn('Alunos Matriculados', turma)
+        self.assertIn('Professores', turma)
+        self.assertIn('Turma Reservada', turma)
+        for reserva in turma['Turma Reservada']:
+            self.assertTrue('Ciência da Computação' in reserva or
+                            'Física' in reserva)
 
         codigo = 113476  # APC
         turmas = Oferta.turmas(codigo, depto=Departamento.GAMA,

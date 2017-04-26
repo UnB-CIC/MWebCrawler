@@ -496,8 +496,13 @@ class Oferta:
                  '.*?' \
                  '<center>(.*?)(?:|<br>)</center>' \
                  '.*?' \
-                 '(Reserva para curso.*?<td align=left>(.*?)</td>.*?)?' \
-                 '<td colspan=6 bgcolor=white height=20>'
+                 '(Reserva para curso(.*?))?' \
+                 '<tr><td colspan=6 bgcolor=white height=20></td></tr>'
+
+
+        CURSOS_RESERVADOS = '<td align=left>(.*?)</td>' \
+                            '<td align=center>(\d+)</td>' \
+                            '<td align=center>(\d+)</td>'
 
         disciplina = str(disciplina)
         if verbose:
@@ -518,7 +523,9 @@ class Oferta:
             oferta[turma]['Alunos Matriculados'] = int(ocupadas)
             oferta[turma]['Professores'] = professores.split('<br>')
             if reserva:
-                oferta[turma]['Turma Reservada'] = reserva
+                oferta[turma]['Turma Reservada'] = {}
+                for curso, vagas, calouros in busca(CURSOS_RESERVADOS, reserva):
+                    oferta[turma]['Turma Reservada'][curso] = {'Vagas': int(vagas), 'Calouros': int(calouros)}
 
         return oferta
 

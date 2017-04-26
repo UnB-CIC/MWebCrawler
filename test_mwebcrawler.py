@@ -215,6 +215,13 @@ class TestOferta(unittest.TestCase):
         self.assertGreater(turma['Vagas'], 0)
         self.assertIn('Alunos Matriculados', turma)
         self.assertIn('Professores', turma)
+
+        self.assertIn('Aulas', turma)
+        for infos in turma['Aulas'].values():
+            self.assertIn('Início', infos)
+            self.assertIn('Fim', infos)
+            self.assertIn('Local', infos)
+
         self.assertIn('Turma Reservada', turma)
         for reserva in turma['Turma Reservada']:
             self.assertTrue('Ciência da Computação' in reserva or

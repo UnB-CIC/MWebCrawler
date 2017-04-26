@@ -500,11 +500,17 @@ class Oferta:
                  '.*?' \
                  '<td>Ocupadas</td>' \
                  '<td><b><font color=(?:red|green)>(\d+)</font></b></td>' \
-                 '.*?' \
+                 '(.*?)' \
                  '<center>(.*?)(?:|<br>)</center>' \
                  '.*?' \
                  '(Reserva para curso(.*?))?' \
                  '<tr><td colspan=6 bgcolor=white height=20></td></tr>'
+
+        HORARIO = '<div style="border: white 1px solid;" id=".*?">' \
+                  '<b>(.*?)</b>.*?' \
+                  '<font size=1 color=black><b>(.*?)</font>.*?' \
+                  '<font size=1 color=brown>(.*?)</b></font>.*?align=top> ' \
+                  '(.*?)</i></div>'
 
         RESERVA = '<td align=left>(.*?)</td>' \
                   '<td align=center>(\d+)</td>' \
@@ -530,10 +536,16 @@ class Oferta:
 
         turmas = busca(TURMAS, pagina_html)
         turmas_ofertadas = {}
-        for (t, vagas, ocupadas, professores, aux, reservas) in turmas:
+        for (t, vagas, ocupadas, horarios, professores, aux, reservas) in turmas:
             turma = {'Vagas': int(vagas),
                      'Alunos Matriculados': int(ocupadas),
                      'Professores': professores.split('<br>')}
+
+            turma['Aulas'] = {}
+            for dia, inicio, fim, local in busca(HORARIO, horarios):
+                turma['Aulas'][dia] = {'Início': inicio,
+                                       'Fim': fim,
+                                       'Local': local}
             if reservas:
                 turma['Turma Reservada'] = {curso: {'Vagas': int(vagas),
                                                     'Calouros': int(calouros)}

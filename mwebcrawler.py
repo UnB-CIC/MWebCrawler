@@ -487,6 +487,13 @@ class Oferta:
         verbose -- indicação dos procedimentos sendo adotados
                    (default False)
         '''
+        INFORMACOES = 'Departamento: <strong><a href.*?>(.*?)</a></strong>' \
+                      '.*?' \
+                      'Nome: <a title=.*?>(.*?)<img .*?></a>' \
+                      '.*?' \
+                      '<b>Créditos</b><br>\(Teor-Prat-Ext-Est\)<br>' \
+                      '<font.*?>(\d+)-(\d+)-(\d+)-(\d+)'
+
         TURMAS = '<b>Turma</b>.*?<font size=4><b>(\w+)</b></font></div>' \
                  '.*?' \
                  '<td>Total</td><td>Vagas</td><td><b>(\d+)</b>' \
@@ -499,10 +506,9 @@ class Oferta:
                  '(Reserva para curso(.*?))?' \
                  '<tr><td colspan=6 bgcolor=white height=20></td></tr>'
 
-
-        CURSOS_RESERVADOS = '<td align=left>(.*?)</td>' \
-                            '<td align=center>(\d+)</td>' \
-                            '<td align=center>(\d+)</td>'
+        RESERVA = '<td align=left>(.*?)</td>' \
+                  '<td align=center>(\d+)</td>' \
+                  '<td align=center>(\d+)</td>'
 
         disciplina = str(disciplina)
         if verbose:
@@ -513,19 +519,30 @@ class Oferta:
             params['dep'] = str(depto)
 
         pagina_html = mweb(nivel, 'oferta_dados', params)
-        turmas_ofertadas = busca(TURMAS, pagina_html)
+        informacoes = busca(INFORMACOES, pagina_html)
 
         oferta = {}
-        for (turma, vagas, ocupadas,
-             professores, aux, reserva) in turmas_ofertadas:
-            oferta[turma] = {}
-            oferta[turma]['Vagas'] = int(vagas)
-            oferta[turma]['Alunos Matriculados'] = int(ocupadas)
-            oferta[turma]['Professores'] = professores.split('<br>')
-            if reserva:
-                oferta[turma]['Turma Reservada'] = {}
-                for curso, vagas, calouros in busca(CURSOS_RESERVADOS, reserva):
-                    oferta[turma]['Turma Reservada'][curso] = {'Vagas': int(vagas), 'Calouros': int(calouros)}
+        for (departamento, nome, teor, prat, ext, est) in informacoes:
+            oferta['Departamento'] = departamento
+            oferta['Nome'] = nome
+            oferta['Créditos'] = {'Teoria': int(teor), 'Prática': int(prat),
+                                  'Extensão': int(ext), 'Estudo': int(est)}
+
+        turmas = busca(TURMAS, pagina_html)
+        turmas_ofertadas = {}
+        for (t, vagas, ocupadas, professores, aux, reservas) in turmas:
+            turma = {'Vagas': int(vagas),
+                     'Alunos Matriculados': int(ocupadas),
+                     'Professores': professores.split('<br>')}
+            if reservas:
+                turma['Turma Reservada'] = {curso: {'Vagas': int(vagas),
+                                                    'Calouros': int(calouros)}
+                                            for curso, vagas, calouros
+                                            in busca(RESERVA, reservas)}
+
+            turmas_ofertadas[t] = turma
+
+        oferta['Turmas'] = turmas_ofertadas
 
         return oferta
 

@@ -196,10 +196,21 @@ class TestOferta(unittest.TestCase):
         turmas = Oferta.turmas(codigo, depto=Departamento.CIC,
                                nivel=Nivel.GRADUACAO, verbose=False)
 
-        for t in ['A', 'B', 'C', 'E']:
-            self.assertIn(t, turmas)
+        self.assertIn('Departamento', turmas)
+        self.assertIn('CIC', turmas['Departamento'])
+        self.assertIn('Nome', turmas)
+        self.assertIn('DADOS', turmas['Nome'])
+        self.assertIn('Créditos', turmas)
+        self.assertIn('Teoria', turmas['Créditos'])
+        self.assertIn('Prática', turmas['Créditos'])
+        self.assertIn('Extensão', turmas['Créditos'])
+        self.assertIn('Estudo', turmas['Créditos'])
 
-        turma = turmas['A']
+        self.assertIn('Turmas', turmas)
+        for t in ['A', 'B', 'C', 'E']:
+            self.assertIn(t, turmas['Turmas'])
+
+        turma = turmas['Turmas']['A']
         self.assertIn('Vagas', turma)
         self.assertGreater(turma['Vagas'], 0)
         self.assertIn('Alunos Matriculados', turma)
@@ -214,7 +225,7 @@ class TestOferta(unittest.TestCase):
                                nivel=Nivel.GRADUACAO, verbose=False)
 
         for t in ['AA', 'BB']:
-            self.assertIn(t, turmas)
+            self.assertIn(t, turmas['Turmas'])
 
 
 if __name__ == '__main__':

@@ -217,10 +217,11 @@ class TestOferta(unittest.TestCase):
         self.assertIn('Professores', turma)
 
         self.assertIn('Aulas', turma)
-        for infos in turma['Aulas'].values():
-            self.assertIn('Início', infos)
-            self.assertIn('Fim', infos)
-            self.assertIn('Local', infos)
+        for dia in turma['Aulas']:
+            for horario in dia:
+                self.assertIn('Início', horario)
+                self.assertIn('Fim', horario)
+                self.assertIn('Local', horario)
 
         self.assertIn('Turma Reservada', turma)
         for reserva in turma['Turma Reservada']:

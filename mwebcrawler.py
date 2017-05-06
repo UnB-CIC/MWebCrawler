@@ -472,7 +472,7 @@ class Oferta:
         return demanda
 
     @staticmethod
-    def turmas(disciplina, depto=None, nivel=Nivel.GRADUACAO,
+    def oferta(disciplina, depto=None, nivel=Nivel.GRADUACAO,
                verbose=False):
         '''Dado o código de uma disciplina, e o do Departamento que a oferece,
         acessa o Matrícula Web e retorna um dicionário com a lista de turmas
@@ -506,11 +506,11 @@ class Oferta:
                  '(Reserva para curso(.*?))?' \
                  '<tr><td colspan=6 bgcolor=white height=20></td></tr>'
 
-        HORARIO = '<div style="border: white 1px solid;" id=".*?">' \
-                  '<b>(.*?)</b>.*?' \
+        HORARIO = '<b>((?:Segunda|Terça|Quarta|Quinta|Sexta|Sábado|Domingo))' \
+                  '</b>.*?' \
                   '<font size=1 color=black><b>(.*?)</font>.*?' \
-                  '<font size=1 color=brown>(.*?)</b></font>.*?align=top> ' \
-                  '(.*?)</i></div>'
+                  '<font size=1 color=brown>(.*?)</b></font><br><i>' \
+                  '<img src=/imagens/subseta_dir.gif align=top> (.*?)</i>'
 
         RESERVA = '<td align=left>(.*?)</td>' \
                   '<td align=center>(\d+)</td>' \
@@ -536,16 +536,18 @@ class Oferta:
 
         turmas = busca(TURMAS, pagina_html)
         turmas_ofertadas = {}
-        for (t, vagas, ocupadas, horarios, professores, aux, reservas) in turmas:
+        for (t, vagas, ocupadas, horarios, docentes, aux, reservas) in turmas:
             turma = {'Vagas': int(vagas),
                      'Alunos Matriculados': int(ocupadas),
-                     'Professores': professores.split('<br>')}
+                     'Professores': docentes.split('<br>')}
 
             turma['Aulas'] = {}
             for dia, inicio, fim, local in busca(HORARIO, horarios):
-                turma['Aulas'][dia] = {'Início': inicio,
-                                       'Fim': fim,
-                                       'Local': local}
+                if dia not in turma['Aulas']:
+                    turma['Aulas'][dia] = []
+                turma['Aulas'][dia].append({'Início': inicio,
+                                            'Fim': fim,
+                                            'Local': local})
             if reservas:
                 turma['Turma Reservada'] = {curso: {'Vagas': int(vagas),
                                                     'Calouros': int(calouros)}
